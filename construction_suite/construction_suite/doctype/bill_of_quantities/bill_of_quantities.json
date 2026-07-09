@@ -1,0 +1,287 @@
+{
+ "actions": [],
+ "allow_bulk_edit": 1,
+ "allow_rename": 1,
+ "autoname": "BOQ/.####",
+ "creation": "2026-07-08 18:26:40.503184",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_oqhc",
+  "customer",
+  "customer_name",
+  "currency",
+  "column_break_cryg",
+  "posting_date",
+  "project_reference",
+  "amended_from",
+  "section_break_pflf",
+  "no_of_holes",
+  "column_break_lrlm",
+  "diameter",
+  "column_break_jqsv",
+  "depth",
+  "concrete_hardness_section",
+  "normal",
+  "column_break_jqlv",
+  "reinforced",
+  "column_break_ynug",
+  "high_grade",
+  "column_break_jydo",
+  "pile_cap",
+  "mobilisation_schedule_section",
+  "mobilisation_cost_rate",
+  "section_break_vvah",
+  "mob_days",
+  "column_break_gsjz",
+  "demob_days",
+  "column_break_agkb",
+  "total_mob_days",
+  "section_break_nrju",
+  "add_machinery",
+  "machinery_list",
+  "section_break_fnqi",
+  "add_manpower",
+  "manpower_list"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_oqhc",
+   "fieldtype": "Section Break",
+   "hide_border": 1,
+   "label": "\ud83d\udccb <b>1 \u00b7 Project &amp; Scope</b>",
+   "sticky": 1
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Bill of Quantities",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Client",
+   "options": "Customer",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "customer.customer_name",
+   "fieldname": "customer_name",
+   "fieldtype": "Data",
+   "label": "Client Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_cryg",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Today",
+   "fieldname": "posting_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Posting Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "project_reference",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Project Reference",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_pflf",
+   "fieldtype": "Section Break",
+   "hide_border": 1
+  },
+  {
+   "fieldname": "no_of_holes",
+   "fieldtype": "Float",
+   "label": "No of Holes"
+  },
+  {
+   "fieldname": "column_break_lrlm",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "diameter",
+   "fieldtype": "Select",
+   "label": "Diameter (mm)",
+   "options": "100mm\n150mm\n200mm\n300mm\n400mm\n500mm\n600mm\n750mm\n900mm\n1000mm\n1500mm\n1600mm\n1700mm\n1800mm\n1900mm\n2000mm"
+  },
+  {
+   "fieldname": "column_break_jqsv",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "depth",
+   "fieldtype": "Float",
+   "label": "Depth (m/hole)"
+  },
+  {
+   "fieldname": "concrete_hardness_section",
+   "fieldtype": "Section Break",
+   "label": "Concrete Hardness"
+  },
+  {
+   "default": "0",
+   "description": "\u00d71.0",
+   "fieldname": "normal",
+   "fieldtype": "Check",
+   "label": "Normal"
+  },
+  {
+   "fieldname": "column_break_jqlv",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "1",
+   "description": "\u00d71.2",
+   "fieldname": "reinforced",
+   "fieldtype": "Check",
+   "label": "Reinforced"
+  },
+  {
+   "fieldname": "column_break_ynug",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "description": "\u00d71.5",
+   "fieldname": "high_grade",
+   "fieldtype": "Check",
+   "label": "High Grade"
+  },
+  {
+   "fieldname": "column_break_jydo",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "description": "\u00d72.0",
+   "fieldname": "pile_cap",
+   "fieldtype": "Check",
+   "label": "Pile Cap"
+  },
+  {
+   "fieldname": "currency",
+   "fieldtype": "Link",
+   "label": "Currency",
+   "options": "Currency",
+   "reqd": 1
+  },
+  {
+   "fieldname": "mobilisation_schedule_section",
+   "fieldtype": "Section Break",
+   "label": "\ud83d\ude9a <b>2 \u00b7 Mobilisation Schedule</b>"
+  },
+  {
+   "default": "0",
+   "fieldname": "mobilisation_cost_rate",
+   "fieldtype": "Currency",
+   "label": "Mobilisation Cost Rate",
+   "options": "Company:company:default_currency"
+  },
+  {
+   "fieldname": "section_break_vvah",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "mob_days",
+   "fieldtype": "Int",
+   "label": "Mob Days",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "column_break_gsjz",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "demob_days",
+   "fieldtype": "Int",
+   "label": "Demob Days",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "column_break_agkb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "total_mob_days",
+   "fieldtype": "Int",
+   "label": "Total Mob Days",
+   "non_negative": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_nrju",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "machinery_list",
+   "fieldtype": "Table",
+   "label": "Machinery List",
+   "options": "Bill of Quantities Machinery Item"
+  },
+  {
+   "fieldname": "add_machinery",
+   "fieldtype": "Button",
+   "label": "Add Machinery"
+  },
+  {
+   "fieldname": "section_break_fnqi",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "add_manpower",
+   "fieldtype": "Button",
+   "label": "Add Manpower"
+  },
+  {
+   "fieldname": "manpower_list",
+   "fieldtype": "Table",
+   "label": "Manpower List",
+   "options": "Bill of Quantities Manpower Item"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2026-07-09 21:18:22.664159",
+ "modified_by": "Administrator",
+ "module": "Construction Suite",
+ "name": "Bill of Quantities",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

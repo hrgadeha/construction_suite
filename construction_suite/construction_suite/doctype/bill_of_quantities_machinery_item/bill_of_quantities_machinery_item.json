@@ -1,0 +1,119 @@
+{
+ "actions": [],
+ "allow_bulk_edit": 1,
+ "creation": "2026-07-08 19:04:20.679433",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "item_code",
+  "item_group",
+  "uom",
+  "qty",
+  "no_of_days",
+  "column_break_dsxn",
+  "rate",
+  "machine_amount",
+  "mob_premium",
+  "mob_amount",
+  "amount"
+ ],
+ "fields": [
+  {
+   "columns": 3,
+   "fieldname": "item_code",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Machinery Item",
+   "options": "Item",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "item_code.item_group",
+   "fieldname": "item_group",
+   "fieldtype": "Data",
+   "label": "Item Group",
+   "read_only": 1
+  },
+  {
+   "fieldname": "uom",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "UOM",
+   "options": "UOM",
+   "read_only": 1
+  },
+  {
+   "default": "1",
+   "fieldname": "qty",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Qty"
+  },
+  {
+   "default": "1",
+   "fieldname": "no_of_days",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Days"
+  },
+  {
+   "default": "0",
+   "fieldname": "rate",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Rate"
+  },
+  {
+   "default": "0",
+   "fieldname": "machine_amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Machine Amount",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fetch_from": "item_code.mobilisation_premium",
+   "fieldname": "mob_premium",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Mob Premium"
+  },
+  {
+   "default": "0",
+   "fieldname": "mob_amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Mob Amount",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Amount",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_dsxn",
+   "fieldtype": "Column Break"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-07-09 21:16:27.138191",
+ "modified_by": "Administrator",
+ "module": "Construction Suite",
+ "name": "Bill of Quantities Machinery Item",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

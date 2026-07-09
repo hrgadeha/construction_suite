@@ -1,0 +1,24 @@
+[
+ {
+  "doctype": "Custom Field",
+  "name": "Item-mobilisation_premium",
+  "dt": "Item",
+  "fieldname": "mobilisation_premium",
+  "label": "Mobilisation Premium",
+  "fieldtype": "Currency",
+  "insert_after": "standard_rate",
+  "default": "0",
+  "description": "One-time mobilisation/demobilisation premium for this machinery item, shown in the BOQ Add Machinery dialog."
+ },
+ {
+  "doctype": "Custom Field",
+  "name": "Item Group-has_mobilisation_fee",
+  "dt": "Item Group",
+  "fieldname": "has_mobilisation_fee",
+  "label": "Applies Mobilisation Fee",
+  "fieldtype": "Check",
+  "insert_after": "parent_item_group",
+  "default": "0",
+  "description": "Check for machinery categories that carry a mobilisation premium (e.g. Crane, Rotator / Coring Rig). Leave unchecked for categories like Excavator, Generator, or Diamond Bit that don't."
+ }
+]

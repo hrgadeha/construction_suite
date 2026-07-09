@@ -82,6 +82,15 @@ app_license = "mit"
 # 	"filters": "construction_suite.utils.jinja_filters"
 # }
 
+fixtures = [
+	{
+		"dt": "Custom Field",
+		"filters": [
+			["name", "in", ["Item-mobilisation_premium", "Item Group-has_mobilisation_fee"]]
+		],
+	}
+]
+
 # Installation
 # ------------
 
