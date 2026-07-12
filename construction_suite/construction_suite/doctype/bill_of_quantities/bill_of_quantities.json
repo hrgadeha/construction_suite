@@ -12,6 +12,7 @@
   "customer_name",
   "currency",
   "column_break_cryg",
+  "company",
   "posting_date",
   "project_reference",
   "amended_from",
@@ -37,19 +38,64 @@
   "demob_days",
   "column_break_agkb",
   "total_mob_days",
+  "coring_point_schedule_section",
+  "days_per_coring_point",
+  "column_break_dmvg",
+  "estimated_coring_work_days",
   "section_break_nrju",
   "add_machinery",
   "machinery_list",
+  "diamond_bit_consumable",
+  "diamond_bit_consumable_amount",
+  "equipment_mob_premiums_section",
+  "mobilisation_schedule",
   "section_break_fnqi",
   "add_manpower",
-  "manpower_list"
+  "manpower_list",
+  "total_manpower",
+  "lta_compliance_costs_section",
+  "pe_lifting_plan",
+  "noise_vib_monitor",
+  "nce",
+  "pe_calculation",
+  "column_break_xmtt",
+  "ptw_management",
+  "waste_management",
+  "impact_assessment",
+  "additional_compliance_items_section",
+  "add_item",
+  "additional_compliance_items_list",
+  "overhead_and_diesel_section",
+  "overhead",
+  "diesel_rate",
+  "column_break_gekq",
+  "overhead_lump_sum",
+  "diesel_consumption",
+  "total_section",
+  "total_days",
+  "base_mob_and_demob",
+  "equipment_premiums",
+  "total_mob_cost",
+  "column_break_ogfj",
+  "total_manpower_cost",
+  "total_machinery_cost",
+  "total_management_and_compliance_cost",
+  "sub_total",
+  "margins_and_notes_section",
+  "contingency",
+  "contingency_amount",
+  "profit_margin",
+  "profit_margin_amount",
+  "grand_total",
+  "column_break_ysuo",
+  "notes"
  ],
  "fields": [
   {
    "fieldname": "section_break_oqhc",
    "fieldtype": "Section Break",
    "hide_border": 1,
-   "label": "\ud83d\udccb <b>1 \u00b7 Project &amp; Scope</b>",
+   "label": "\ud83d\udccb 1 \u00b7 Project & Scope",
    "sticky": 1
   },
   {
@@ -180,18 +226,19 @@
   {
    "fieldname": "mobilisation_schedule_section",
    "fieldtype": "Section Break",
-   "label": "\ud83d\ude9a <b>2 \u00b7 Mobilisation Schedule</b>"
+   "label": "\ud83d\ude9a 2 \u00b7 Mobilisation Schedule"
   },
   {
    "default": "0",
    "fieldname": "mobilisation_cost_rate",
    "fieldtype": "Currency",
    "label": "Mobilisation Cost Rate",
-   "options": "Company:company:default_currency"
+   "options": "currency"
   },
   {
    "fieldname": "section_break_vvah",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "hide_border": 1
   },
   {
    "default": "0",
@@ -225,7 +272,9 @@
   },
   {
    "fieldname": "section_break_nrju",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "hide_border": 1,
+   "label": "\ud83c\udfd7\ufe0f 3 \u00b7 Machinery Selection & Daily Rates"
   },
   {
    "fieldname": "machinery_list",
@@ -240,7 +289,8 @@
   },
   {
    "fieldname": "section_break_fnqi",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "label": "\ud83d\udc77 4 \u00b7 Worker Allocation"
   },
   {
    "fieldname": "add_manpower",
@@ -252,13 +302,284 @@
    "fieldtype": "Table",
    "label": "Manpower List",
    "options": "Bill of Quantities Manpower Item"
+  },
+  {
+   "fieldname": "coring_point_schedule_section",
+   "fieldtype": "Section Break",
+   "label": "\u23f1 Coring Point Schedule (Engineer Input)"
+  },
+  {
+   "default": "0",
+   "description": "Set 0 to use diameter-based auto rate. E.g. 1.5 = 1.5 days per hole.",
+   "fieldname": "days_per_coring_point",
+   "fieldtype": "Float",
+   "label": "Days Per Coring Point"
+  },
+  {
+   "fieldname": "column_break_dmvg",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "estimated_coring_work_days",
+   "fieldtype": "Float",
+   "label": "Estimated Coring Work Days",
+   "read_only": 1
+  },
+  {
+   "fieldname": "equipment_mob_premiums_section",
+   "fieldtype": "Section Break",
+   "label": "\ud83d\udce6 Equipment Mob Premiums (Auto from Machinery List)"
+  },
+  {
+   "fieldname": "mobilisation_schedule",
+   "fieldtype": "HTML",
+   "label": "Mobilisation Schedule"
+  },
+  {
+   "default": "0",
+   "fieldname": "total_manpower",
+   "fieldtype": "Int",
+   "label": "Total Manpower",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "total_manpower_cost",
+   "fieldtype": "Currency",
+   "label": "Total Manpower Cost",
+   "options": "currency",
+   "read_only": 1
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "Company",
+   "options": "Company"
+  },
+  {
+   "fieldname": "lta_compliance_costs_section",
+   "fieldtype": "Section Break",
+   "label": "\ud83d\udccb 5 \u00b7 LTA Compliance Costs"
+  },
+  {
+   "default": "0",
+   "fieldname": "pe_lifting_plan",
+   "fieldtype": "Float",
+   "label": "PE Lifting Plan (Lump Sum)"
+  },
+  {
+   "fieldname": "column_break_xmtt",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "ptw_management",
+   "fieldtype": "Float",
+   "label": "PTW Management (Per Day)"
+  },
+  {
+   "default": "0",
+   "fieldname": "noise_vib_monitor",
+   "fieldtype": "Float",
+   "label": "Noise Vib Monitor (Per Day)"
+  },
+  {
+   "default": "0",
+   "fieldname": "nce",
+   "fieldtype": "Float",
+   "label": "NCE (Lump Sum)"
+  },
+  {
+   "default": "0",
+   "fieldname": "pe_calculation",
+   "fieldtype": "Float",
+   "label": "PE Calculation (Lump Sum)"
+  },
+  {
+   "default": "0",
+   "fieldname": "waste_management",
+   "fieldtype": "Float",
+   "label": "Waste Management (Per Day)"
+  },
+  {
+   "default": "0",
+   "fieldname": "impact_assessment",
+   "fieldtype": "Float",
+   "label": "Impact Assessment (Lump Sum)"
+  },
+  {
+   "fieldname": "overhead_and_diesel_section",
+   "fieldtype": "Section Break",
+   "label": "\u26fd 6 \u00b7 Overhead & Diesel"
+  },
+  {
+   "default": "0",
+   "fieldname": "overhead",
+   "fieldtype": "Float",
+   "label": "Overhead (% of Labour + Machinery)"
+  },
+  {
+   "fieldname": "diesel_rate",
+   "fieldtype": "Float",
+   "label": "Diesel Rate (S$/Litre)"
+  },
+  {
+   "fieldname": "column_break_gekq",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "overhead_lump_sum",
+   "fieldtype": "Float",
+   "label": "Overhead Lump Sum (S$) optional, added on top"
+  },
+  {
+   "fieldname": "diesel_consumption",
+   "fieldtype": "Float",
+   "label": "Diesel Consumption (Litres/Day)"
+  },
+  {
+   "fieldname": "margins_and_notes_section",
+   "fieldtype": "Section Break",
+   "label": "\ud83d\udcca 8 \u00b7 Margins and Notes"
+  },
+  {
+   "default": "0",
+   "fieldname": "profit_margin",
+   "fieldtype": "Percent",
+   "label": "Profit Margin (%)"
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Long Text",
+   "label": "Notes"
+  },
+  {
+   "fieldname": "column_break_ysuo",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "contingency",
+   "fieldtype": "Percent",
+   "label": "Contingency(%)"
+  },
+  {
+   "fieldname": "additional_compliance_items_section",
+   "fieldtype": "Section Break",
+   "label": "Additional Compliance Items"
+  },
+  {
+   "fieldname": "add_item",
+   "fieldtype": "Button",
+   "label": "Add Item"
+  },
+  {
+   "fieldname": "additional_compliance_items_list",
+   "fieldtype": "Table",
+   "label": "Additional Compliance Items List",
+   "options": "Bill of Quantities Additional Compliance Items"
+  },
+  {
+   "fieldname": "total_section",
+   "fieldtype": "Section Break",
+   "label": "\ud83d\udd22 Calculated Values"
+  },
+  {
+   "default": "0",
+   "fieldname": "total_days",
+   "fieldtype": "Float",
+   "label": "Total Days",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "base_mob_and_demob",
+   "fieldtype": "Currency",
+   "label": "Base Mob and Demob",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_ogfj",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "equipment_premiums",
+   "fieldtype": "Currency",
+   "label": "Equipment Premiums",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "total_mob_cost",
+   "fieldtype": "Currency",
+   "label": "Total Mob Cost",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "total_machinery_cost",
+   "fieldtype": "Currency",
+   "label": "Total Machinery Cost",
+   "options": "currency",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "total_management_and_compliance_cost",
+   "fieldtype": "Currency",
+   "label": "Total Management and Compliance Cost",
+   "options": "currency",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "diamond_bit_consumable",
+   "fieldtype": "Float",
+   "label": "Diamond Bit Consumable ($/linear metre)"
+  },
+  {
+   "default": "0",
+   "fieldname": "diamond_bit_consumable_amount",
+   "fieldtype": "Currency",
+   "label": "Diamond Bit Consumable Amount",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "sub_total",
+   "fieldtype": "Currency",
+   "label": "Sub Total",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "contingency_amount",
+   "fieldtype": "Currency",
+   "label": "Contingency Amount",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "profit_margin_amount",
+   "fieldtype": "Currency",
+   "label": "Profit Margin Amount",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "grand_total",
+   "fieldtype": "Currency",
+   "label": "Grand Total",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-07-09 21:18:22.664159",
+ "modified": "2026-07-13 00:14:04.113591",
  "modified_by": "Administrator",
  "module": "Construction Suite",
  "name": "Bill of Quantities",
