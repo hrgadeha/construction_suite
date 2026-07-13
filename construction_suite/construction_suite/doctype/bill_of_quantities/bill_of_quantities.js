@@ -42,6 +42,7 @@ frappe.ui.form.on("Bill of Quantities", {
 		style_concrete_hardness_checkboxes(frm);
 		bind_concrete_hardness_block_click(frm);
 		update_concrete_hardness_active_state(frm);
+		add_boq_preview_button(frm);
 	},
 	add_machinery(frm) {
 		open_machinery_dialog(frm);
@@ -149,6 +150,7 @@ function calculate_boq_totals(frm) {
 	calculate_total_mob_days(frm);
 	calculate_estimated_coring_work_days(frm);
 	calculate_total_days(frm);
+	sync_row_days_with_total_days(frm);
 	calculate_manpower_totals(frm);
 	calculate_diamond_bit_consumable(frm);
 	calculate_total_machinery_cost(frm);
@@ -157,6 +159,24 @@ function calculate_boq_totals(frm) {
 	calculate_sub_total(frm);
 	calculate_grand_total(frm);
 	render_mobilisation_schedule(frm);
+}
+
+function sync_row_days_with_total_days(frm) {
+	const total_days = frm.doc.total_days || 0;
+
+	(frm.doc.machinery_list || []).forEach((row) => {
+		row.no_of_days = total_days;
+		row.machine_amount = (row.qty || 0) * (row.rate || 0) * total_days;
+		row.mob_amount = (row.qty || 0) * (row.mob_premium || 0);
+		row.amount = row.machine_amount + row.mob_amount;
+	});
+	(frm.doc.manpower_list || []).forEach((row) => {
+		row.no_of_days = total_days;
+		row.amount = (row.qty || 0) * (row.rate || 0) * total_days;
+	});
+
+	frm.refresh_field("machinery_list");
+	frm.refresh_field("manpower_list");
 }
 
 function calculate_sub_total(frm) {
@@ -256,9 +276,6 @@ frappe.ui.form.on("Bill of Quantities Machinery Item", {
 	qty(frm, cdt, cdn) {
 		recalculate_machinery_row_amount(frm, cdt, cdn);
 	},
-	no_of_days(frm, cdt, cdn) {
-		recalculate_machinery_row_amount(frm, cdt, cdn);
-	},
 	rate(frm, cdt, cdn) {
 		recalculate_machinery_row_amount(frm, cdt, cdn);
 	},
@@ -282,9 +299,6 @@ function recalculate_machinery_row_amount(frm, cdt, cdn) {
 
 frappe.ui.form.on("Bill of Quantities Manpower Item", {
 	qty(frm, cdt, cdn) {
-		recalculate_manpower_row_amount(frm, cdt, cdn);
-	},
-	no_of_days(frm, cdt, cdn) {
 		recalculate_manpower_row_amount(frm, cdt, cdn);
 	},
 	rate(frm, cdt, cdn) {
@@ -517,6 +531,37 @@ function style_boq_button(frm, fieldname) {
 			"color": "#fff",
 		});
 	}
+}
+
+const BOQ_PRINT_FORMAT = "BOQ";
+
+function add_boq_preview_button(frm) {
+	if (frm.is_new()) {
+		return;
+	}
+	const button = frm.add_custom_button(__("Preview BOQ"), () => {
+		open_boq_pdf_preview(frm);
+	});
+	button.css({
+		"background-color": "#0a0f5e",
+		"border-color": "#0a0f5e",
+		"color": "#fff",
+	});
+}
+
+function open_boq_pdf_preview(frm) {
+	if (frm.is_dirty()) {
+		frappe.msgprint(__("Please save the document before previewing the BOQ PDF."));
+		return;
+	}
+	const url = frappe.urllib.get_full_url(
+		`/api/method/frappe.utils.print_format.download_pdf?doctype=${encodeURIComponent(
+			frm.doctype
+		)}&name=${encodeURIComponent(frm.docname)}&format=${encodeURIComponent(
+			BOQ_PRINT_FORMAT
+		)}&no_letterhead=0`
+	);
+	window.open(url, "_blank");
 }
 
 function open_machinery_dialog(frm) {
@@ -776,7 +821,7 @@ function add_selected_machinery_to_grid(frm, dialog, item_groups, items_by_group
 			row.item_code = item_code;
 			row.uom = item.uom;
 			row.qty = 1;
-			row.no_of_days = 1;
+			row.no_of_days = frm.doc.total_days || 0;
 			row.rate = rate;
 			row.mob_premium = mob_premium;
 			row.machine_amount = row.qty * rate * row.no_of_days;
@@ -815,7 +860,7 @@ function add_selected_manpower_to_grid(frm, dialog, item_groups, items_by_group)
 			row.item_code = item_code;
 			row.uom = item.uom;
 			row.qty = 1;
-			row.no_of_days = 1;
+			row.no_of_days = frm.doc.total_days || 0;
 			row.rate = rate;
 			row.amount = row.qty * rate * row.no_of_days;
 			added_any = true;

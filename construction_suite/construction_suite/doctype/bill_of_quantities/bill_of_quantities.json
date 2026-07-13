@@ -483,7 +483,7 @@
   {
    "fieldname": "total_section",
    "fieldtype": "Section Break",
-   "label": "\ud83d\udd22 Calculated Values"
+   "label": "\ud83d\udd22 7 \u00b7 Calculated Values"
   },
   {
    "default": "0",
@@ -497,6 +497,7 @@
    "fieldname": "base_mob_and_demob",
    "fieldtype": "Currency",
    "label": "Base Mob and Demob",
+   "options": "currency",
    "read_only": 1
   },
   {
@@ -508,6 +509,7 @@
    "fieldname": "equipment_premiums",
    "fieldtype": "Currency",
    "label": "Equipment Premiums",
+   "options": "currency",
    "read_only": 1
   },
   {
@@ -515,6 +517,7 @@
    "fieldname": "total_mob_cost",
    "fieldtype": "Currency",
    "label": "Total Mob Cost",
+   "options": "currency",
    "read_only": 1
   },
   {
@@ -544,6 +547,7 @@
    "fieldname": "diamond_bit_consumable_amount",
    "fieldtype": "Currency",
    "label": "Diamond Bit Consumable Amount",
+   "options": "currency",
    "read_only": 1
   },
   {
@@ -551,6 +555,7 @@
    "fieldname": "sub_total",
    "fieldtype": "Currency",
    "label": "Sub Total",
+   "options": "currency",
    "read_only": 1
   },
   {
@@ -558,6 +563,7 @@
    "fieldname": "contingency_amount",
    "fieldtype": "Currency",
    "label": "Contingency Amount",
+   "options": "currency",
    "read_only": 1
   },
   {
@@ -565,6 +571,7 @@
    "fieldname": "profit_margin_amount",
    "fieldtype": "Currency",
    "label": "Profit Margin Amount",
+   "options": "currency",
    "read_only": 1
   },
   {
@@ -572,6 +579,7 @@
    "fieldname": "grand_total",
    "fieldtype": "Currency",
    "label": "Grand Total",
+   "options": "currency",
    "read_only": 1
   }
  ],
@@ -579,7 +587,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-07-13 00:14:04.113591",
+ "modified": "2026-07-13 00:18:19.536905",
  "modified_by": "Administrator",
  "module": "Construction Suite",
  "name": "Bill of Quantities",

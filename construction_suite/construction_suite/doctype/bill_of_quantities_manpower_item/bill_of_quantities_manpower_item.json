@@ -50,10 +50,12 @@
   },
   {
    "default": "1",
+   "description": "Auto-set to the BOQ's Total Days (Mobilisation + Coring + Demobilisation)",
    "fieldname": "no_of_days",
    "fieldtype": "Float",
    "in_list_view": 1,
-   "label": "Days"
+   "label": "Days",
+   "read_only": 1
   },
   {
    "fieldname": "column_break_dsxn",
@@ -64,7 +66,8 @@
    "fieldname": "rate",
    "fieldtype": "Currency",
    "in_list_view": 1,
-   "label": "Rate"
+   "label": "Rate",
+   "options": "currency"
   },
   {
    "default": "0",
@@ -72,6 +75,7 @@
    "fieldtype": "Currency",
    "in_list_view": 1,
    "label": "Amount",
+   "options": "currency",
    "read_only": 1
   }
  ],

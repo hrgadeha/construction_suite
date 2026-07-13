@@ -41,6 +41,7 @@ class BillofQuantities(Document):
 		self.calculate_total_mob_days()
 		self.calculate_estimated_coring_work_days()
 		self.calculate_total_days()
+		self.sync_row_days_with_total_days()
 		self.calculate_machinery_amounts()
 		self.calculate_manpower_amounts()
 		self.calculate_diamond_bit_consumable()
@@ -65,6 +66,12 @@ class BillofQuantities(Document):
 
 	def calculate_total_days(self):
 		self.total_days = flt(self.estimated_coring_work_days) + flt(self.mob_days) + flt(self.demob_days)
+
+	def sync_row_days_with_total_days(self):
+		for row in self.machinery_list:
+			row.no_of_days = flt(self.total_days)
+		for row in self.manpower_list:
+			row.no_of_days = flt(self.total_days)
 
 	def calculate_machinery_amounts(self):
 		for row in self.machinery_list:
