@@ -4,7 +4,7 @@
 import math
 
 from frappe.model.document import Document
-from frappe.utils import flt
+from frappe.utils import date_diff, flt, getdate
 
 DIAMETER_HOLES_PER_DAY_BREAKPOINTS = [
 	(300, 6),
@@ -50,6 +50,8 @@ class BillofQuantities(Document):
 		self.calculate_total_management_and_compliance_cost()
 		self.calculate_sub_total()
 		self.calculate_grand_total()
+		self.calculate_milestone_days()
+		self.calculate_planned_total_days()
 
 	def calculate_total_mob_days(self):
 		self.total_mob_days = flt(self.mob_days) + flt(self.demob_days)
@@ -149,3 +151,21 @@ class BillofQuantities(Document):
 		self.contingency_amount = contingency_amount
 		self.profit_margin_amount = profit_margin_amount
 		self.grand_total = sub_total + contingency_amount + profit_margin_amount
+
+	def calculate_milestone_days(self):
+		for row in self.milestones:
+			if row.start_date and row.end_date:
+				row.total_days = date_diff(row.end_date, row.start_date) + 1
+			else:
+				row.total_days = 0
+
+	def calculate_planned_total_days(self):
+		start_dates = [getdate(row.start_date) for row in self.milestones if row.start_date]
+		end_dates = [getdate(row.end_date) for row in self.milestones if row.end_date]
+
+		if not start_dates or not end_dates:
+			self.planned_total_days = 0
+			return
+
+		total_days = date_diff(max(end_dates), min(start_dates)) + 1
+		self.planned_total_days = total_days if total_days > 0 else 0

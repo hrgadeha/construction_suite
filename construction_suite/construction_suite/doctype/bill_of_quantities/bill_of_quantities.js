@@ -43,6 +43,8 @@ frappe.ui.form.on("Bill of Quantities", {
 		bind_concrete_hardness_block_click(frm);
 		update_concrete_hardness_active_state(frm);
 		add_boq_preview_button(frm);
+		calculate_planned_total_days(frm);
+		style_milestone_assign_button(frm);
 	},
 	add_machinery(frm) {
 		open_machinery_dialog(frm);
@@ -138,6 +140,13 @@ frappe.ui.form.on("Bill of Quantities", {
 	profit_margin(frm) {
 		calculate_boq_totals(frm);
 	},
+	milestones_add(frm) {
+		calculate_planned_total_days(frm);
+		style_milestone_assign_button(frm);
+	},
+	milestones_remove(frm) {
+		calculate_planned_total_days(frm);
+	},
 });
 
 frappe.ui.form.on("Bill of Quantities Additional Compliance Items", {
@@ -145,6 +154,176 @@ frappe.ui.form.on("Bill of Quantities Additional Compliance Items", {
 		calculate_boq_totals(frm);
 	},
 });
+
+frappe.ui.form.on("Bill of Quantities Milestone", {
+	start_date(frm, cdt, cdn) {
+		calculate_milestone_row_days(frm, cdt, cdn);
+	},
+	end_date(frm, cdt, cdn) {
+		calculate_milestone_row_days(frm, cdt, cdn);
+	},
+	assign_resources(frm, cdt, cdn) {
+		open_milestone_resource_dialog(frm, cdt, cdn);
+	},
+});
+
+function calculate_milestone_row_days(frm, cdt, cdn) {
+	const row = locals[cdt][cdn];
+	if (row.start_date && row.end_date) {
+		const days = frappe.datetime.get_diff(row.end_date, row.start_date) + 1;
+		row.total_days = days > 0 ? days : 0;
+	} else {
+		row.total_days = 0;
+	}
+	frm.refresh_field("milestones");
+	style_milestone_assign_button(frm);
+	calculate_planned_total_days(frm);
+}
+
+function style_milestone_assign_button(frm) {
+	const grid = frm.fields_dict.milestones && frm.fields_dict.milestones.grid;
+	if (!grid) {
+		return;
+	}
+	grid.wrapper.find('[data-fieldname="assign_resources"] button').css({
+		"background-color": "#e8a020",
+		"border-color": "#e8a020",
+		"color": "#fff",
+	});
+}
+
+function calculate_planned_total_days(frm) {
+	const milestones = frm.doc.milestones || [];
+	const start_dates = milestones.map((row) => row.start_date).filter(Boolean);
+	const end_dates = milestones.map((row) => row.end_date).filter(Boolean);
+
+	if (!start_dates.length || !end_dates.length) {
+		frm.set_value("planned_total_days", 0);
+		return;
+	}
+
+	const earliest_start = start_dates.reduce((min, date) => (date < min ? date : min));
+	const latest_end = end_dates.reduce((max, date) => (date > max ? date : max));
+	const total_days = frappe.datetime.get_diff(latest_end, earliest_start) + 1;
+	frm.set_value("planned_total_days", total_days > 0 ? total_days : 0);
+}
+
+function open_milestone_resource_dialog(frm, cdt, cdn) {
+	const milestone_row = locals[cdt][cdn];
+	fetch_milestone_item_names(frm).then((item_names) => {
+		const dialog = build_milestone_resource_dialog(frm, milestone_row, item_names);
+		dialog.show();
+	});
+}
+
+function fetch_milestone_item_names(frm) {
+	const item_codes = [
+		...(frm.doc.machinery_list || []).map((row) => row.item_code),
+		...(frm.doc.manpower_list || []).map((row) => row.item_code),
+	].filter(Boolean);
+	const unique_codes = [...new Set(item_codes)];
+
+	if (!unique_codes.length) {
+		return Promise.resolve({});
+	}
+
+	return frappe.db
+		.get_list("Item", {
+			filters: { name: ["in", unique_codes] },
+			fields: ["name", "item_name"],
+			limit_page_length: 0,
+		})
+		.then((rows) => {
+			const item_names = {};
+			rows.forEach((row) => {
+				item_names[row.name] = row.item_name;
+			});
+			return item_names;
+		});
+}
+
+function parse_milestone_json(value) {
+	if (!value) {
+		return [];
+	}
+	try {
+		return JSON.parse(value);
+	} catch (e) {
+		return [];
+	}
+}
+
+function build_milestone_resource_dialog(frm, milestone_row, item_names) {
+	const assigned_machinery_codes = parse_milestone_json(milestone_row.machinery_json);
+	const assigned_manpower_codes = parse_milestone_json(milestone_row.manpower_json);
+
+	const machinery_options = (frm.doc.machinery_list || []).map((row) => ({
+		label: item_names[row.item_code] || row.item_code,
+		value: row.item_code,
+		checked: assigned_machinery_codes.includes(row.item_code),
+	}));
+	const manpower_options = (frm.doc.manpower_list || []).map((row) => ({
+		label: item_names[row.item_code] || row.item_code,
+		value: row.item_code,
+		checked: assigned_manpower_codes.includes(row.item_code),
+	}));
+
+	const dialog = new frappe.ui.Dialog({
+		title: __("Assign Resources — {0}", [milestone_row.milestone]),
+		fields: [
+			{
+				fieldname: "machinery_rows",
+				fieldtype: "MultiCheck",
+				label: __("Machinery"),
+				options: machinery_options,
+				columns: 1,
+			},
+			{ fieldtype: "Section Break" },
+			{
+				fieldname: "manpower_rows",
+				fieldtype: "MultiCheck",
+				label: __("Manpower"),
+				options: manpower_options,
+				columns: 1,
+			},
+		],
+		primary_action_label: __("Save"),
+		primary_action() {
+			save_milestone_resource_assignments(frm, milestone_row, dialog, item_names);
+			dialog.hide();
+		},
+	});
+
+	return dialog;
+}
+
+function save_milestone_resource_assignments(frm, milestone_row, dialog, item_names) {
+	const selected_machinery_codes = dialog.get_value("machinery_rows") || [];
+	const selected_manpower_codes = dialog.get_value("manpower_rows") || [];
+
+	milestone_row.machinery_json = JSON.stringify(selected_machinery_codes);
+	milestone_row.manpower_json = JSON.stringify(selected_manpower_codes);
+
+	update_milestone_resources_summary(milestone_row, item_names);
+
+	frm.refresh_field("milestones");
+	style_milestone_assign_button(frm);
+	frm.dirty();
+}
+
+function update_milestone_resources_summary(milestone_row, item_names) {
+	const machinery_codes = parse_milestone_json(milestone_row.machinery_json);
+	const manpower_codes = parse_milestone_json(milestone_row.manpower_json);
+
+	const parts = [];
+	if (machinery_codes.length) {
+		parts.push(`${__("Machinery")}: ${machinery_codes.map((code) => item_names[code] || code).join(", ")}`);
+	}
+	if (manpower_codes.length) {
+		parts.push(`${__("Manpower")}: ${manpower_codes.map((code) => item_names[code] || code).join(", ")}`);
+	}
+	milestone_row.resources_summary = parts.join(" | ");
+}
 
 function calculate_boq_totals(frm) {
 	calculate_total_mob_days(frm);
@@ -534,32 +713,44 @@ function style_boq_button(frm, fieldname) {
 }
 
 const BOQ_PRINT_FORMAT = "BOQ";
+const BOQ_PROJECT_PLAN_PRINT_FORMAT = "BOQ Project Plan";
 
 function add_boq_preview_button(frm) {
 	if (frm.is_new()) {
 		return;
 	}
 	const button = frm.add_custom_button(__("Preview BOQ"), () => {
-		open_boq_pdf_preview(frm);
+		open_boq_print_format_pdf(frm, BOQ_PRINT_FORMAT, __("Please save the document before previewing the BOQ PDF."));
 	});
 	button.css({
 		"background-color": "#0a0f5e",
 		"border-color": "#0a0f5e",
 		"color": "#fff",
 	});
+
+	const plan_button = frm.add_custom_button(__("Preview Project Plan"), () => {
+		open_boq_print_format_pdf(
+			frm,
+			BOQ_PROJECT_PLAN_PRINT_FORMAT,
+			__("Please save the document before previewing the Project Plan PDF.")
+		);
+	});
+	plan_button.css({
+		"background-color": "#e8a020",
+		"border-color": "#e8a020",
+		"color": "#fff",
+	});
 }
 
-function open_boq_pdf_preview(frm) {
+function open_boq_print_format_pdf(frm, print_format, dirty_message) {
 	if (frm.is_dirty()) {
-		frappe.msgprint(__("Please save the document before previewing the BOQ PDF."));
+		frappe.msgprint(dirty_message);
 		return;
 	}
 	const url = frappe.urllib.get_full_url(
 		`/api/method/frappe.utils.print_format.download_pdf?doctype=${encodeURIComponent(
 			frm.doctype
-		)}&name=${encodeURIComponent(frm.docname)}&format=${encodeURIComponent(
-			BOQ_PRINT_FORMAT
-		)}&no_letterhead=0`
+		)}&name=${encodeURIComponent(frm.docname)}&format=${encodeURIComponent(print_format)}&no_letterhead=0`
 	);
 	window.open(url, "_blank");
 }

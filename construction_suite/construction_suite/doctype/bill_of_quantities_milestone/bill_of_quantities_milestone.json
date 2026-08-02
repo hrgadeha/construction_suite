@@ -1,0 +1,93 @@
+{
+ "actions": [],
+ "allow_bulk_edit": 1,
+ "creation": "2026-07-20 10:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "milestone",
+  "start_date",
+  "end_date",
+  "total_days",
+  "assign_resources",
+  "resources_summary",
+  "machinery_json",
+  "manpower_json"
+ ],
+ "fields": [
+  {
+   "fieldname": "milestone",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Milestone",
+   "reqd": 1
+  },
+  {
+   "fieldname": "start_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Start Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "end_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "End Date",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "total_days",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Total Days",
+   "read_only": 1
+  },
+  {
+   "fieldname": "assign_resources",
+   "fieldtype": "Button",
+   "in_list_view": 1,
+   "label": "Assign Resources"
+  },
+  {
+   "fieldname": "resources_summary",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Assigned Resources",
+   "read_only": 1
+  },
+  {
+   "fieldname": "machinery_json",
+   "fieldtype": "Long Text",
+   "hidden": 1,
+   "label": "Machinery (JSON)",
+   "print_hide": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "manpower_json",
+   "fieldtype": "Long Text",
+   "hidden": 1,
+   "label": "Manpower (JSON)",
+   "print_hide": 1,
+   "read_only": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-07-20 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Construction Suite",
+ "name": "Bill of Quantities Milestone",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}
