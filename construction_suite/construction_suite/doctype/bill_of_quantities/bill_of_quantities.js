@@ -756,14 +756,14 @@ function open_boq_print_format_pdf(frm, print_format, dirty_message) {
 }
 
 function open_machinery_dialog(frm) {
-	fetch_boq_item_groups(MACHINERY_ITEM_GROUP_PARENT, ["has_mobilisation_fee"]).then((item_groups) => {
+	fetch_boq_item_groups(MACHINERY_ITEM_GROUP_PARENT, ["custom_has_mobilisation_fee"]).then((item_groups) => {
 		if (!item_groups.length) {
 			frappe.msgprint(
 				__('No machinery categories found under the "{0}" Item Group.', [MACHINERY_ITEM_GROUP_PARENT])
 			);
 			return;
 		}
-		fetch_boq_items_by_group(item_groups, ["mobilisation_premium"]).then((items_by_group) => {
+		fetch_boq_items_by_group(item_groups, ["custom_mobilisation_premium"]).then((items_by_group) => {
 			apply_boq_item_prices(frm, items_by_group).then(() => {
 				const dialog = build_machinery_dialog(frm, item_groups, items_by_group);
 				dialog.show();
@@ -931,7 +931,7 @@ function build_machinery_dialog(frm, item_groups, items_by_group) {
 				items: items_by_group[group.name],
 				icon_map: MACHINERY_CATEGORY_ICONS,
 				fallback_icon: "⚙️",
-				build_label: (item, grp) => format_machinery_option_label(item, grp.has_mobilisation_fee),
+				build_label: (item, grp) => format_machinery_option_label(item, grp.custom_has_mobilisation_fee),
 			})
 		);
 	});
@@ -981,10 +981,10 @@ function build_manpower_dialog(frm, item_groups, items_by_group) {
 	return dialog;
 }
 
-function format_machinery_option_label(item, has_mobilisation_fee) {
+function format_machinery_option_label(item, custom_has_mobilisation_fee) {
 	let label = `${item.item_name} — ${format_currency(item.rate || 0)}/${item.uom || ""}`;
-	if (has_mobilisation_fee && item.mobilisation_premium) {
-		label += ` (+${format_currency(item.mobilisation_premium)} mob)`;
+	if (custom_has_mobilisation_fee && item.custom_mobilisation_premium) {
+		label += ` (+${format_currency(item.custom_mobilisation_premium)} mob)`;
 	}
 	return label;
 }
@@ -1007,7 +1007,7 @@ function add_selected_machinery_to_grid(frm, dialog, item_groups, items_by_group
 				return;
 			}
 			const rate = item.rate || 0;
-			const mob_premium = group.has_mobilisation_fee ? item.mobilisation_premium || 0 : 0;
+			const mob_premium = group.custom_has_mobilisation_fee ? item.custom_mobilisation_premium || 0 : 0;
 			const row = frm.add_child("machinery_list");
 			row.item_code = item_code;
 			row.uom = item.uom;

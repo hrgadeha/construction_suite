@@ -79,7 +79,7 @@
   },
   {
    "default": "0",
-   "fetch_from": "item_code.mobilisation_premium",
+   "fetch_from": "item_code.custom_mobilisation_premium",
    "fetch_if_empty": 1,
    "fieldname": "mob_premium",
    "fieldtype": "Currency",

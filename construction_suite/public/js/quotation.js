@@ -7,7 +7,7 @@ frappe.ui.form.on("Quotation", {
 		style_boq_line_button(frm);
 		render_boq_summary(frm);
 	},
-	bill_of_quantities(frm) {
+	custom_bill_of_quantities(frm) {
 		render_boq_summary(frm);
 	},
 	custom_add_quotation_lines(frm) {
@@ -38,7 +38,7 @@ function style_boq_line_button(frm) {
 }
 
 function open_boq_line_dialog(frm) {
-	const has_boq = !!frm.doc.bill_of_quantities;
+	const has_boq = !!frm.doc.custom_bill_of_quantities;
 
 	const dialog = new frappe.ui.Dialog({
 		title: __("Add BOQ Line"),
@@ -60,7 +60,7 @@ function open_boq_line_dialog(frm) {
 			},
 			{ fieldtype: "Column Break" },
 			{
-				fieldname: "amount_remark",
+				fieldname: "custom_amount_remark",
 				fieldtype: "Data",
 				label: __("Amount Remark (optional)"),
 				description: __('e.g. "Included", "By Main Con" — shown instead of the computed amount.'),
@@ -103,18 +103,18 @@ function open_boq_line_dialog(frm) {
 	dialog.show();
 
 	if (has_boq) {
-		render_boq_line_dialog_summary(dialog, frm.doc.bill_of_quantities);
+		render_boq_line_dialog_summary(dialog, frm.doc.custom_bill_of_quantities);
 	}
 }
 
-function render_boq_line_dialog_summary(dialog, bill_of_quantities) {
+function render_boq_line_dialog_summary(dialog, custom_bill_of_quantities) {
 	const field = dialog.fields_dict.boq_summary_preview;
 	if (!field) {
 		return;
 	}
 	field.$wrapper.html(`<div class="text-muted">${__("Loading BOQ summary...")}</div>`);
 
-	frappe.db.get_doc("Bill of Quantities", bill_of_quantities).then((boq) => {
+	frappe.db.get_doc("Bill of Quantities", custom_bill_of_quantities).then((boq) => {
 		build_boq_summary_html(boq).then((html) => {
 			field.$wrapper.html(html);
 			inject_boq_summary_style();
@@ -126,7 +126,7 @@ function render_boq_line_dialog_summary(dialog, bill_of_quantities) {
 function add_boq_line_to_items(frm, values) {
 	const is_item_row = values.row_type === "Item";
 	const description = (values.description || "").trim();
-	const remark_value = (values.amount_remark || "").trim();
+	const remark_value = (values.custom_amount_remark || "").trim();
 	const remark_is_numeric = remark_value !== "" && !isNaN(flt(remark_value)) && isFinite(remark_value);
 
 	const row = frm.add_child("items");
@@ -172,14 +172,14 @@ function render_boq_summary(frm) {
 		return;
 	}
 
-	if (!frm.doc.bill_of_quantities) {
+	if (!frm.doc.custom_bill_of_quantities) {
 		field.$wrapper.html(
 			`<div class="text-muted">${__("Select a Bill of Quantities to see its summary here.")}</div>`
 		);
 		return;
 	}
 
-	frappe.db.get_doc("Bill of Quantities", frm.doc.bill_of_quantities).then((boq) => {
+	frappe.db.get_doc("Bill of Quantities", frm.doc.custom_bill_of_quantities).then((boq) => {
 		build_boq_summary_html(boq).then((html) => {
 			field.$wrapper.html(html);
 			inject_boq_summary_style();

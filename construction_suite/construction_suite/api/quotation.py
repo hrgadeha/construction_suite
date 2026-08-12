@@ -32,8 +32,8 @@ def get_merged_quotation_pdf(name):
 			output=writer,
 		)
 
-		if print_format == "Quotation BOQ Items" and doc.get("bill_of_quantities"):
-			boq_doc = frappe.get_doc("Bill of Quantities", doc.bill_of_quantities)
+		if print_format == "Quotation BOQ Items" and doc.get("custom_bill_of_quantities"):
+			boq_doc = frappe.get_doc("Bill of Quantities", doc.custom_bill_of_quantities)
 			frappe.get_print(
 				doctype="Bill of Quantities",
 				name=boq_doc.name,

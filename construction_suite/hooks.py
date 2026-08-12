@@ -87,13 +87,22 @@ fixtures = [
 		"dt": "Custom Field",
 		"filters": [
 			[
-				"name",
+				"module",
 				"in",
 				[
-					"Item-mobilisation_premium",
-					"Item Group-has_mobilisation_fee",
-					"Quotation Item-custom_category_type",
-					"Quotation Item-custom_amount_remark",
+					"Construction Suite",
+				],
+			]
+		],
+	},
+	{
+		"dt": "Property Setter",
+		"filters": [
+			[
+				"module",
+				"in",
+				[
+					"Construction Suite",
 				],
 			]
 		],
