@@ -38,9 +38,18 @@ function style_boq_line_button(frm) {
 }
 
 function open_boq_line_dialog(frm) {
+	const has_boq = !!frm.doc.bill_of_quantities;
+
 	const dialog = new frappe.ui.Dialog({
 		title: __("Add BOQ Line"),
+		size: "extra-large",
 		fields: [
+			...(has_boq
+				? [
+						{ fieldname: "boq_summary_preview", fieldtype: "HTML" },
+						{ fieldtype: "Section Break" },
+				  ]
+				: []),
 			{
 				fieldname: "row_type",
 				fieldtype: "Select",
@@ -92,6 +101,26 @@ function open_boq_line_dialog(frm) {
 		},
 	});
 	dialog.show();
+
+	if (has_boq) {
+		render_boq_line_dialog_summary(dialog, frm.doc.bill_of_quantities);
+	}
+}
+
+function render_boq_line_dialog_summary(dialog, bill_of_quantities) {
+	const field = dialog.fields_dict.boq_summary_preview;
+	if (!field) {
+		return;
+	}
+	field.$wrapper.html(`<div class="text-muted">${__("Loading BOQ summary...")}</div>`);
+
+	frappe.db.get_doc("Bill of Quantities", bill_of_quantities).then((boq) => {
+		build_boq_summary_html(boq).then((html) => {
+			field.$wrapper.html(html);
+			inject_boq_summary_style();
+			bind_boq_summary_tabs(field.$wrapper);
+		});
+	});
 }
 
 function add_boq_line_to_items(frm, values) {
