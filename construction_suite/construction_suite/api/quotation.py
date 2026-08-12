@@ -8,9 +8,12 @@ from pypdf import PdfWriter
 
 QUOTATION_PDF_PRINT_FORMATS = [
 	"Quotation Header",
+	"Quotation BOQ Items",
 	"Quotation Files",
 	"Quotation Terms",
 ]
+
+BOQ_PROJECT_PLAN_PRINT_FORMAT = "BOQ Project Plan"
 
 
 @frappe.whitelist()
@@ -28,6 +31,17 @@ def get_merged_quotation_pdf(name):
 			as_pdf=True,
 			output=writer,
 		)
+
+		if print_format == "Quotation BOQ Items" and doc.get("bill_of_quantities"):
+			boq_doc = frappe.get_doc("Bill of Quantities", doc.bill_of_quantities)
+			frappe.get_print(
+				doctype="Bill of Quantities",
+				name=boq_doc.name,
+				print_format=BOQ_PROJECT_PLAN_PRINT_FORMAT,
+				doc=boq_doc,
+				as_pdf=True,
+				output=writer,
+			)
 
 	frappe.local.response.filename = "{0}.pdf".format(name.replace(" ", "-").replace("/", "-"))
 	frappe.local.response.filecontent = get_file_data_from_writer(writer)

@@ -86,7 +86,16 @@ fixtures = [
 	{
 		"dt": "Custom Field",
 		"filters": [
-			["name", "in", ["Item-mobilisation_premium", "Item Group-has_mobilisation_fee"]]
+			[
+				"name",
+				"in",
+				[
+					"Item-mobilisation_premium",
+					"Item Group-has_mobilisation_fee",
+					"Quotation Item-custom_category_type",
+					"Quotation Item-custom_amount_remark",
+				],
+			]
 		],
 	}
 ]

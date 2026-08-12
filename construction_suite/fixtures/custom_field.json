@@ -20,5 +20,30 @@
   "insert_after": "parent_item_group",
   "default": "0",
   "description": "Check for machinery categories that carry a mobilisation premium (e.g. Crane, Rotator / Coring Rig). Leave unchecked for categories like Excavator, Generator, or Diamond Bit that don't."
+ },
+ {
+  "doctype": "Custom Field",
+  "name": "Quotation Item-custom_category_type",
+  "dt": "Quotation Item",
+  "fieldname": "custom_category_type",
+  "label": "Row Type",
+  "fieldtype": "Select",
+  "options": "Item\nSection\nSub Item",
+  "insert_after": "item_name",
+  "default": "Item",
+  "in_list_view": 1,
+  "print_hide": 1,
+  "description": "Drives BOQ-style numbering and layout (Section / Item / Sub Item) in the printed Quotation BOQ. Set via the \"Add BOQ Line\" dialog, not meant to be typed directly."
+ },
+ {
+  "doctype": "Custom Field",
+  "name": "Quotation Item-custom_amount_remark",
+  "dt": "Quotation Item",
+  "fieldname": "custom_amount_remark",
+  "label": "Amount Remark",
+  "fieldtype": "Data",
+  "insert_after": "amount",
+  "print_hide": 1,
+  "description": "Optional text (e.g. \"Included\", \"By Main Con\") shown in place of the computed amount on the printed BOQ line."
  }
 ]

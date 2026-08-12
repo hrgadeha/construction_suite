@@ -4,10 +4,14 @@
 frappe.ui.form.on("Quotation", {
 	refresh(frm) {
 		add_merged_pdf_button(frm);
+		style_boq_line_button(frm);
 		render_boq_summary(frm);
 	},
 	bill_of_quantities(frm) {
 		render_boq_summary(frm);
+	},
+	custom_add_quotation_lines(frm) {
+		open_boq_line_dialog(frm);
 	},
 });
 
@@ -18,6 +22,106 @@ function add_merged_pdf_button(frm) {
 	frm.add_custom_button(__("Download PDF"), () => {
 		open_merged_quotation_pdf(frm);
 	});
+}
+
+const BOQ_LINE_FALLBACK_UOM = "Nos";
+
+function style_boq_line_button(frm) {
+	const field = frm.fields_dict.custom_add_quotation_lines;
+	if (field) {
+		field.$input.css({
+			"background-color": "#e8a020",
+			"border-color": "#e8a020",
+			"color": "#fff",
+		});
+	}
+}
+
+function open_boq_line_dialog(frm) {
+	const dialog = new frappe.ui.Dialog({
+		title: __("Add BOQ Line"),
+		fields: [
+			{
+				fieldname: "row_type",
+				fieldtype: "Select",
+				label: __("Row Type"),
+				options: ["Section", "Item", "Sub Item"],
+				default: "Section",
+				reqd: 1,
+			},
+			{ fieldtype: "Column Break" },
+			{
+				fieldname: "amount_remark",
+				fieldtype: "Data",
+				label: __("Amount Remark (optional)"),
+				description: __('e.g. "Included", "By Main Con" — shown instead of the computed amount.'),
+				depends_on: 'eval:doc.row_type == "Item"',
+			},
+			{ fieldtype: "Section Break" },
+			{
+				fieldname: "description",
+				fieldtype: "Small Text",
+				label: __("Description"),
+				reqd: 1,
+			},
+			{ fieldtype: "Section Break", depends_on: 'eval:doc.row_type == "Item"' },
+			{
+				fieldname: "uom",
+				fieldtype: "Link",
+				options: "UOM",
+				label: __("Unit"),
+			},
+			{ fieldtype: "Column Break" },
+			{
+				fieldname: "qty",
+				fieldtype: "Float",
+				label: __("Qty"),
+				default: 1,
+			},
+			{ fieldtype: "Column Break" },
+			{
+				fieldname: "rate",
+				fieldtype: "Currency",
+				label: __("Rate"),
+			},
+		],
+		primary_action_label: __("Add"),
+		primary_action(values) {
+			add_boq_line_to_items(frm, values);
+			dialog.hide();
+		},
+	});
+	dialog.show();
+}
+
+function add_boq_line_to_items(frm, values) {
+	const is_item_row = values.row_type === "Item";
+	const description = (values.description || "").trim();
+	const remark_value = (values.amount_remark || "").trim();
+	const remark_is_numeric = remark_value !== "" && !isNaN(flt(remark_value)) && isFinite(remark_value);
+
+	const row = frm.add_child("items");
+	row.custom_category_type = values.row_type;
+	row.item_name = description.length > 140 ? description.slice(0, 137) + "..." : description;
+	row.description = description;
+	row.qty = is_item_row ? flt(values.qty) || 1 : 1;
+	row.uom = is_item_row ? values.uom || BOQ_LINE_FALLBACK_UOM : BOQ_LINE_FALLBACK_UOM;
+	row.stock_uom = row.uom;
+	row.conversion_factor = 1;
+
+	if (is_item_row && remark_is_numeric) {
+		// A numeric Amount Remark is treated as the rate, not as a text override.
+		row.rate = flt(remark_value);
+		row.custom_amount_remark = "";
+	} else {
+		row.rate = is_item_row ? flt(values.rate) || 0 : 0;
+		row.custom_amount_remark = is_item_row ? remark_value : "";
+	}
+	row.amount = row.custom_amount_remark ? 0 : row.qty * row.rate;
+
+	frm.refresh_field("items");
+	frm.script_manager.trigger("qty", row.doctype, row.name);
+	frm.dirty();
 }
 
 function open_merged_quotation_pdf(frm) {
