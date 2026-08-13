@@ -1,0 +1,22 @@
+{
+ "app": "construction_suite",
+ "bg_color": "gray",
+ "creation": "2026-08-14 00:04:11.709142",
+ "docstatus": 0,
+ "doctype": "Desktop Icon",
+ "hidden": 0,
+ "icon_image": "/files/ChatGPT Image Aug 13, 2026, 09_05_12 PM.png",
+ "icon_type": "Link",
+ "idx": 0,
+ "label": "Construction Suite",
+ "link_to": "Construction Suite",
+ "link_type": "Workspace Sidebar",
+ "logo_url": "/files/ChatGPT%20Image%20Aug%2013,%202026,%2009_05_12%20PM.png",
+ "modified": "2026-08-14 02:13:54.086561",
+ "modified_by": "Administrator",
+ "name": "Construction Suite",
+ "owner": "Administrator",
+ "restrict_removal": 0,
+ "roles": [],
+ "standard": 1
+}
