@@ -165,6 +165,12 @@ fixtures = [
 # ---------------
 # Hook on document methods and events
 
+doc_events = {
+	"Sales Order": {
+		"on_submit": "construction_suite.construction_suite.api.sales_order.on_submit",
+	},
+}
+
 # doc_events = {
 # 	"*": {
 # 		"on_update": "method",
