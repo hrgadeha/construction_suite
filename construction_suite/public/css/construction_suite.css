@@ -1,0 +1,5 @@
+/* Darker, more visible section-break dividers across all desk forms. */
+.form-section.card-section,
+.form-dashboard-section {
+	border-bottom: 2px solid #000000;
+}

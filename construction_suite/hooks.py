@@ -25,7 +25,7 @@ app_license = "mit"
 # ------------------
 
 # include js, css files in header of desk.html
-# app_include_css = "/assets/construction_suite/css/construction_suite.css"
+app_include_css = "/assets/construction_suite/css/construction_suite.css"
 # app_include_js = "/assets/construction_suite/js/construction_suite.js"
 
 # include js, css files in header of web template
@@ -43,7 +43,10 @@ app_license = "mit"
 # page_js = {"page" : "public/js/file.js"}
 
 # include js in doctype views
-doctype_js = {"Quotation": "public/js/quotation.js"}
+doctype_js = {
+	"Quotation": "public/js/quotation.js",
+	"Opportunity": "public/js/opportunity.js",
+}
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
@@ -223,6 +226,13 @@ doc_events = {
 # each overriding function accepts a `data` argument;
 # generated from the base implementation of the doctype dashboard,
 # along with any modifications made in other Frappe apps
+override_doctype_dashboards = {
+	"Opportunity": "construction_suite.construction_suite.dashboard_overrides.get_opportunity_dashboard_data",
+	"Quotation": "construction_suite.construction_suite.dashboard_overrides.get_quotation_dashboard_data",
+	"Sales Order": "construction_suite.construction_suite.dashboard_overrides.get_sales_order_dashboard_data",
+	"Project": "construction_suite.construction_suite.dashboard_overrides.get_project_dashboard_data",
+}
+
 # override_doctype_dashboards = {
 # 	"Task": "construction_suite.task.get_dashboard_data"
 # }
