@@ -1,6 +1,7 @@
 # Copyright (c) 2026, Hardik Gadesha and contributors
 # For license information, please see license.txt
 
+import json
 import math
 
 from frappe.model.document import Document
@@ -36,6 +37,21 @@ def parse_diameter_mm(diameter):
 	return int(digits) if digits else 600
 
 
+def parse_json_list(value):
+	if not value:
+		return []
+	try:
+		data = json.loads(value)
+	except (TypeError, ValueError):
+		return []
+	return data if isinstance(data, list) else []
+
+
+def sum_resource_daily_cost(item_codes, source_rows):
+	daily_cost_by_code = {row.item_code: flt(row.qty) * flt(row.rate) for row in source_rows if row.item_code}
+	return sum(daily_cost_by_code.get(code, 0) for code in item_codes)
+
+
 class BillofQuantities(Document):
 	def validate(self):
 		self.calculate_total_mob_days()
@@ -52,6 +68,8 @@ class BillofQuantities(Document):
 		self.calculate_grand_total()
 		self.calculate_milestone_days()
 		self.calculate_planned_total_days()
+		self.calculate_milestone_costs()
+		self.calculate_planned_total_cost()
 
 	def calculate_total_mob_days(self):
 		self.total_mob_days = flt(self.mob_days) + flt(self.demob_days)
@@ -169,3 +187,15 @@ class BillofQuantities(Document):
 
 		total_days = date_diff(max(end_dates), min(start_dates)) + 1
 		self.planned_total_days = total_days if total_days > 0 else 0
+
+	def calculate_milestone_costs(self):
+		for row in self.milestones:
+			days = flt(row.total_days)
+			row.manpower_cost = sum_resource_daily_cost(parse_json_list(row.manpower_json), self.manpower_list) * days
+			row.machinery_cost = (
+				sum_resource_daily_cost(parse_json_list(row.machinery_json), self.machinery_list) * days
+			)
+			row.total_cost = flt(row.manual_cost) + flt(row.manpower_cost) + flt(row.machinery_cost)
+
+	def calculate_planned_total_cost(self):
+		self.planned_total_cost = sum(flt(row.total_cost) for row in self.milestones)

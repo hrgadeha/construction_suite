@@ -94,7 +94,8 @@
   "notes",
   "project_planning_section",
   "milestones",
-  "planned_total_days"
+  "planned_total_days",
+  "planned_total_cost"
  ],
  "fields": [
   {
@@ -148,6 +149,7 @@
    "fieldname": "project_reference",
    "fieldtype": "Data",
    "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Project Reference",
    "reqd": 1
   },
@@ -618,6 +620,14 @@
    "read_only": 1
   },
   {
+   "default": "0",
+   "fieldname": "planned_total_cost",
+   "fieldtype": "Currency",
+   "label": "Planned Total Cost",
+   "non_negative": 1,
+   "read_only": 1
+  },
+  {
    "fieldname": "boq_for",
    "fieldtype": "Link",
    "label": "BOQ For",
@@ -647,7 +657,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-08-13 21:13:49.630436",
+ "modified": "2026-08-14 02:24:17.951699",
  "modified_by": "Administrator",
  "module": "Construction Suite",
  "name": "Bill of Quantities",

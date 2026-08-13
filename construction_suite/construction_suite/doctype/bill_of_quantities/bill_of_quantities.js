@@ -44,6 +44,7 @@ frappe.ui.form.on("Bill of Quantities", {
 		update_concrete_hardness_active_state(frm);
 		add_boq_preview_button(frm);
 		calculate_planned_total_days(frm);
+		calculate_all_milestone_costs(frm);
 		style_milestone_assign_button(frm);
 	},
 	add_machinery(frm) {
@@ -142,10 +143,12 @@ frappe.ui.form.on("Bill of Quantities", {
 	},
 	milestones_add(frm) {
 		calculate_planned_total_days(frm);
+		calculate_planned_total_cost(frm);
 		style_milestone_assign_button(frm);
 	},
 	milestones_remove(frm) {
 		calculate_planned_total_days(frm);
+		calculate_planned_total_cost(frm);
 	},
 });
 
@@ -165,6 +168,9 @@ frappe.ui.form.on("Bill of Quantities Milestone", {
 	assign_resources(frm, cdt, cdn) {
 		open_milestone_resource_dialog(frm, cdt, cdn);
 	},
+	manual_cost(frm, cdt, cdn) {
+		calculate_milestone_costs(frm, cdt, cdn);
+	},
 });
 
 function calculate_milestone_row_days(frm, cdt, cdn) {
@@ -178,6 +184,40 @@ function calculate_milestone_row_days(frm, cdt, cdn) {
 	frm.refresh_field("milestones");
 	style_milestone_assign_button(frm);
 	calculate_planned_total_days(frm);
+	calculate_milestone_costs(frm, cdt, cdn);
+}
+
+function calculate_milestone_costs(frm, cdt, cdn) {
+	const row = locals[cdt][cdn];
+	const days = flt(row.total_days);
+
+	row.manpower_cost = sum_resource_daily_cost(parse_milestone_json(row.manpower_json), frm.doc.manpower_list || []) * days;
+	row.machinery_cost = sum_resource_daily_cost(parse_milestone_json(row.machinery_json), frm.doc.machinery_list || []) * days;
+	row.total_cost = flt(row.manual_cost) + flt(row.manpower_cost) + flt(row.machinery_cost);
+
+	frm.refresh_field("milestones");
+	calculate_planned_total_cost(frm);
+}
+
+function sum_resource_daily_cost(item_codes, source_rows) {
+	const daily_cost_by_code = {};
+	source_rows.forEach((row) => {
+		if (row.item_code) {
+			daily_cost_by_code[row.item_code] = flt(row.qty) * flt(row.rate);
+		}
+	});
+	return item_codes.reduce((sum, code) => sum + (daily_cost_by_code[code] || 0), 0);
+}
+
+function calculate_all_milestone_costs(frm) {
+	(frm.doc.milestones || []).forEach((row) => {
+		calculate_milestone_costs(frm, row.doctype, row.name);
+	});
+}
+
+function calculate_planned_total_cost(frm) {
+	const total = (frm.doc.milestones || []).reduce((sum, row) => sum + flt(row.total_cost), 0);
+	frm.set_value("planned_total_cost", total);
 }
 
 function style_milestone_assign_button(frm) {
@@ -253,17 +293,23 @@ function parse_milestone_json(value) {
 	}
 }
 
+function build_resource_option_label(row, item_names, currency) {
+	const name = item_names[row.item_code] || row.item_code;
+	const daily_cost = flt(row.qty) * flt(row.rate);
+	return `${name} (${format_currency(daily_cost, currency)}/day)`;
+}
+
 function build_milestone_resource_dialog(frm, milestone_row, item_names) {
 	const assigned_machinery_codes = parse_milestone_json(milestone_row.machinery_json);
 	const assigned_manpower_codes = parse_milestone_json(milestone_row.manpower_json);
 
 	const machinery_options = (frm.doc.machinery_list || []).map((row) => ({
-		label: item_names[row.item_code] || row.item_code,
+		label: build_resource_option_label(row, item_names, frm.doc.currency),
 		value: row.item_code,
 		checked: assigned_machinery_codes.includes(row.item_code),
 	}));
 	const manpower_options = (frm.doc.manpower_list || []).map((row) => ({
-		label: item_names[row.item_code] || row.item_code,
+		label: build_resource_option_label(row, item_names, frm.doc.currency),
 		value: row.item_code,
 		checked: assigned_manpower_codes.includes(row.item_code),
 	}));
@@ -305,6 +351,7 @@ function save_milestone_resource_assignments(frm, milestone_row, dialog, item_na
 	milestone_row.manpower_json = JSON.stringify(selected_manpower_codes);
 
 	update_milestone_resources_summary(milestone_row, item_names);
+	calculate_milestone_costs(frm, milestone_row.doctype, milestone_row.name);
 
 	frm.refresh_field("milestones");
 	style_milestone_assign_button(frm);
@@ -474,6 +521,7 @@ function recalculate_machinery_row_amount(frm, cdt, cdn) {
 	row.amount = row.machine_amount + row.mob_amount;
 	frm.refresh_field("machinery_list");
 	calculate_boq_totals(frm);
+	calculate_all_milestone_costs(frm);
 }
 
 frappe.ui.form.on("Bill of Quantities Manpower Item", {
@@ -492,6 +540,7 @@ function recalculate_manpower_row_amount(frm, cdt, cdn) {
 	const rate = row.rate || 0;
 	frappe.model.set_value(cdt, cdn, "amount", (qty * rate * no_of_days));
 	calculate_boq_totals(frm);
+	calculate_all_milestone_costs(frm);
 }
 
 const MOB_PREMIUM_CARD_PALETTE = [
