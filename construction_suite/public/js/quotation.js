@@ -6,6 +6,7 @@ frappe.ui.form.on("Quotation", {
 		add_merged_pdf_button(frm);
 		style_boq_line_button(frm);
 		render_boq_summary(frm);
+		add_quotation_new_version_button(frm);
 	},
 	custom_bill_of_quantities(frm) {
 		render_boq_summary(frm);
@@ -21,6 +22,34 @@ function add_merged_pdf_button(frm) {
 	}
 	frm.add_custom_button(__("Download PDF"), () => {
 		open_merged_quotation_pdf(frm);
+	});
+}
+
+function add_quotation_new_version_button(frm) {
+	if (frm.is_new() || frm.doc.workflow_state !== "Rejected") {
+		return;
+	}
+	const button = frm.add_custom_button(__("Create New Version"), () => {
+		frappe.confirm(
+			__("This will create a new version of this rejected Quotation for revision. Continue?"),
+			() => {
+				frappe.call({
+					method: "construction_suite.construction_suite.api.quotation.create_new_quotation_version",
+					args: { source_name: frm.doc.name },
+					freeze: true,
+					callback(r) {
+						if (r.message) {
+							frappe.set_route("Form", "Quotation", r.message);
+						}
+					},
+				});
+			}
+		);
+	});
+	button.css({
+		"background-color": "#c0392b",
+		"border-color": "#c0392b",
+		"color": "#fff",
 	});
 }
 

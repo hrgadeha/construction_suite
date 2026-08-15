@@ -109,7 +109,53 @@ fixtures = [
 				],
 			]
 		],
-	}
+	},
+	{
+		"dt": "Role",
+		"filters": [
+			[
+				"name",
+				"in",
+				[
+					"BOQ Creator",
+					"BOQ Reviewer",
+					"BOQ Approver",
+					"Quotation Creator",
+					"Quotation Reviewer",
+					"Quotation Approver",
+				],
+			]
+		],
+	},
+	{
+		"dt": "Workflow State",
+		"filters": [
+			[
+				"name",
+				"in",
+				[
+					"Draft",
+					"Pending Review",
+					"Pending Approval",
+					"Approved",
+					"Rejected",
+				],
+			]
+		],
+	},
+	{
+		"dt": "Workflow",
+		"filters": [
+			[
+				"name",
+				"in",
+				[
+					"Bill of Quantities Approval",
+					"Quotation Approval",
+				],
+			]
+		],
+	},
 ]
 
 # Installation

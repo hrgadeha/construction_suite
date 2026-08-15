@@ -3,7 +3,10 @@
 
 import json
 import math
+import re
 
+import frappe
+from frappe import _
 from frappe.model.document import Document
 from frappe.utils import date_diff, flt, getdate
 
@@ -199,3 +202,31 @@ class BillofQuantities(Document):
 
 	def calculate_planned_total_cost(self):
 		self.planned_total_cost = sum(flt(row.total_cost) for row in self.milestones)
+
+
+@frappe.whitelist()
+def create_new_boq_version(source_name):
+	source = frappe.get_doc("Bill of Quantities", source_name)
+	if source.workflow_state != "Rejected":
+		frappe.throw(_("Only a Rejected BOQ can be used to create a new version."))
+
+	new_doc = frappe.copy_doc(source)
+	new_doc.workflow_state = "Draft"
+	new_doc.previous_version = source.name
+	new_doc.insert()
+
+	target_name = get_next_boq_version_name(source.name)
+	frappe.rename_doc("Bill of Quantities", new_doc.name, target_name, force=True)
+
+	return target_name
+
+
+def get_next_boq_version_name(name):
+	match = re.match(r"^(.*)-(\d+)$", name)
+	base, version = (match.group(1), int(match.group(2))) if match else (name, 0)
+
+	while True:
+		version += 1
+		candidate = f"{base}-{version}"
+		if not frappe.db.exists("Bill of Quantities", candidate):
+			return candidate

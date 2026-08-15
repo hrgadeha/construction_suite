@@ -18,6 +18,7 @@
   "posting_date",
   "project_reference",
   "project_planning",
+  "previous_version",
   "amended_from",
   "section_break_pflf",
   "no_of_holes",
@@ -158,6 +159,14 @@
    "fieldtype": "Link",
    "label": "Project Planning",
    "options": "Project Planning",
+   "read_only": 1
+  },
+  {
+   "fieldname": "previous_version",
+   "fieldtype": "Link",
+   "label": "Previous Version",
+   "no_copy": 1,
+   "options": "Bill of Quantities",
    "read_only": 1
   },
   {
@@ -657,7 +666,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-08-14 02:24:17.951699",
+ "modified": "2026-08-14 02:28:17.951699",
  "modified_by": "Administrator",
  "module": "Construction Suite",
  "name": "Bill of Quantities",
@@ -673,6 +682,35 @@
    "read": 1,
    "report": 1,
    "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "BOQ Creator",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "BOQ Reviewer",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "BOQ Approver",
    "share": 1,
    "submit": 1,
    "write": 1

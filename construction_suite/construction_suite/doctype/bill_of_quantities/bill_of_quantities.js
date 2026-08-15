@@ -42,10 +42,10 @@ frappe.ui.form.on("Bill of Quantities", {
 		style_concrete_hardness_checkboxes(frm);
 		bind_concrete_hardness_block_click(frm);
 		update_concrete_hardness_active_state(frm);
-		add_boq_preview_button(frm);
 		calculate_planned_total_days(frm);
 		calculate_all_milestone_costs(frm);
 		style_milestone_assign_button(frm);
+		add_boq_action_buttons(frm);
 	},
 	add_machinery(frm) {
 		open_machinery_dialog(frm);
@@ -763,31 +763,83 @@ function style_boq_button(frm, fieldname) {
 
 const BOQ_PRINT_FORMAT = "BOQ";
 const BOQ_PROJECT_PLAN_PRINT_FORMAT = "BOQ Project Plan";
+const BOQ_ACTIONS_GROUP = __("BOQ Actions");
 
-function add_boq_preview_button(frm) {
+function add_boq_action_buttons(frm) {
 	if (frm.is_new()) {
 		return;
 	}
-	const button = frm.add_custom_button(__("Preview BOQ"), () => {
-		open_boq_print_format_pdf(frm, BOQ_PRINT_FORMAT, __("Please save the document before previewing the BOQ PDF."));
-	});
-	button.css({
-		"background-color": "#0a0f5e",
-		"border-color": "#0a0f5e",
-		"color": "#fff",
-	});
 
-	const plan_button = frm.add_custom_button(__("Preview Project Plan"), () => {
-		open_boq_print_format_pdf(
-			frm,
-			BOQ_PROJECT_PLAN_PRINT_FORMAT,
-			__("Please save the document before previewing the Project Plan PDF.")
+	frm.add_custom_button(
+		__("Preview BOQ"),
+		() => {
+			open_boq_print_format_pdf(frm, BOQ_PRINT_FORMAT, __("Please save the document before previewing the BOQ PDF."));
+		},
+		BOQ_ACTIONS_GROUP
+	);
+
+	frm.add_custom_button(
+		__("Preview Project Plan"),
+		() => {
+			open_boq_print_format_pdf(
+				frm,
+				BOQ_PROJECT_PLAN_PRINT_FORMAT,
+				__("Please save the document before previewing the Project Plan PDF.")
+			);
+		},
+		BOQ_ACTIONS_GROUP
+	);
+
+	if (frm.doc.workflow_state === "Rejected") {
+		frm.add_custom_button(
+			__("Create New Version"),
+			() => {
+				frappe.confirm(
+					__("This will create a new version of this rejected BOQ for revision. Continue?"),
+					() => {
+						frappe.call({
+							method: "construction_suite.construction_suite.doctype.bill_of_quantities.bill_of_quantities.create_new_boq_version",
+							args: { source_name: frm.doc.name },
+							freeze: true,
+							callback(r) {
+								if (r.message) {
+									frappe.set_route("Form", "Bill of Quantities", r.message);
+								}
+							},
+						});
+					}
+				);
+			},
+			BOQ_ACTIONS_GROUP
 		);
-	});
-	plan_button.css({
-		"background-color": "#e8a020",
-		"border-color": "#e8a020",
-		"color": "#fff",
+	}
+
+	if (frm.doc.workflow_state === "Approved") {
+		frm.add_custom_button(
+			__("Create Quotation"),
+			() => {
+				create_quotation_from_boq(frm);
+			},
+			BOQ_ACTIONS_GROUP
+		);
+	}
+}
+
+function create_quotation_from_boq(frm) {
+	frappe.new_doc("Quotation", null, (doc) => {
+		doc.custom_bill_of_quantities = frm.doc.name;
+		doc.company = frm.doc.company;
+		doc.currency = frm.doc.currency;
+		doc.custom_project_name = frm.doc.project_reference;
+
+		if (frm.doc.boq_for === "Customer") {
+			doc.quotation_to = "Customer";
+			doc.party_name = frm.doc.customer;
+			doc.customer_name = frm.doc.customer_name;
+		} else if (frm.doc.boq_for === "Opportunity") {
+			doc.opportunity = frm.doc.client;
+			doc.customer_name = frm.doc.client_name;
+		}
 	});
 }
 

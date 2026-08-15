@@ -615,6 +615,7 @@
   "doctype_or_field": "DocType",
   "field_name": null,
   "is_system_generated": 0,
+  "modified": "2026-08-15 17:49:32.135872",
   "module": "Construction Suite",
   "name": "Quotation-main-allow_auto_repeat",
   "property": "allow_auto_repeat",
