@@ -115,6 +115,18 @@
    "icon": "",
    "indent": 0,
    "keep_closed": 0,
+   "label": "Budget",
+   "link_to": "Budget",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
+   "icon": "",
+   "indent": 0,
+   "keep_closed": 0,
    "label": "Task",
    "link_to": "Task",
    "link_type": "DocType",
@@ -202,7 +214,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-08-14 02:13:58.830938",
+ "modified": "2026-08-19 18:31:25.873253",
  "modified_by": "Administrator",
  "module": "CRM",
  "name": "Construction Suite",

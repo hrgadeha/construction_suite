@@ -46,6 +46,8 @@ app_include_css = "/assets/construction_suite/css/construction_suite.css"
 doctype_js = {
 	"Quotation": "public/js/quotation.js",
 	"Opportunity": "public/js/opportunity.js",
+	"Budget": "public/js/budget.js",
+	"Project": "public/js/project.js",
 }
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}

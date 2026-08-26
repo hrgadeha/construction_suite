@@ -1,0 +1,329 @@
+// Copyright (c) 2026, Hardik Gadesha and contributors
+// For license information, please see license.txt
+
+const BUDGET_STATUS = {
+	good: {
+		fill: "var(--green-500)",
+		track: "var(--green-50)",
+		text: "var(--green-600)",
+		icon: "trending-up",
+		label: __("On Track"),
+	},
+	warning: {
+		fill: "var(--orange-500)",
+		track: "var(--orange-50)",
+		text: "var(--orange-600)",
+		icon: "triangle-alert",
+		label: __("Near Limit"),
+	},
+	critical: {
+		fill: "var(--red-500)",
+		track: "var(--red-50)",
+		text: "var(--red-600)",
+		icon: "trending-down",
+		label: __("Over Budget"),
+	},
+};
+
+frappe.ui.form.on("Project", {
+	refresh(frm) {
+		render_budget_summary(frm);
+	},
+});
+
+function render_budget_summary(frm) {
+	const field = frm.fields_dict.custom_budget_summary;
+	if (!field) {
+		return;
+	}
+
+	if (frm.is_new()) {
+		field.$wrapper.empty();
+		return;
+	}
+
+	inject_budget_summary_style();
+	field.$wrapper.html(build_budget_loading_html());
+
+	frappe.call({
+		method: "construction_suite.construction_suite.api.project.get_project_budget_summary",
+		args: { project: frm.doc.name },
+		callback: (r) => {
+			field.$wrapper.html(build_budget_summary_html(frm, r.message || []));
+		},
+	});
+}
+
+const BUDGET_SEVERITY_ORDER = { critical: 0, warning: 1, good: 2 };
+
+function get_budget_status(budget_amount, actual_amount) {
+	const percent = budget_amount ? (actual_amount / budget_amount) * 100 : actual_amount > 0 ? 100 : 0;
+	const key = percent > 100 ? "critical" : percent > 80 ? "warning" : "good";
+	return { percent, key, ...BUDGET_STATUS[key] };
+}
+
+function negative_marker(is_negative) {
+	return is_negative
+		? `<span class="budget-negative-icon">${frappe.utils.icon("trending-down", "xs")}</span>`
+		: "";
+}
+
+function build_budget_loading_html() {
+	return `
+		<div class="budget-summary budget-summary-loading">
+			<div class="budget-skeleton-stats">
+				${Array(3).fill('<div class="budget-skeleton budget-skeleton-tile"></div>').join("")}
+			</div>
+			<div class="budget-skeleton budget-skeleton-bar"></div>
+		</div>
+	`;
+}
+
+function build_budget_summary_html(frm, budgets) {
+	const currency = frm.doc.currency || frappe.defaults.get_default("currency");
+
+	if (!budgets.length) {
+		return `
+			<div class="budget-summary">
+				<div class="budget-empty">
+					<div class="budget-empty-icon">${frappe.utils.icon("wallet", "lg")}</div>
+					<div class="budget-empty-text">${__("No submitted Budget raised against this Project yet.")}</div>
+					<a class="btn btn-default btn-sm budget-empty-cta"
+						href="/app/budget/new?project=${encodeURIComponent(frm.doc.name)}&budget_against=Project" target="_blank">
+						${frappe.utils.icon("plus", "xs")} ${__("Create Budget")}
+					</a>
+				</div>
+			</div>
+		`;
+	}
+
+	const total_budget = budgets.reduce((sum, b) => sum + flt(b.budget_amount), 0);
+	const actual_spend = budgets.reduce((sum, b) => sum + flt(b.actual_amount), 0);
+	const remaining = total_budget - actual_spend;
+	const overall = get_budget_status(total_budget, actual_spend);
+	const overall_percent = Math.min(overall.percent, 100);
+
+	const rows = budgets
+		.map((b) => ({ b, status: get_budget_status(flt(b.budget_amount), flt(b.actual_amount)) }))
+		.sort((a, c) => {
+			const severity_diff = BUDGET_SEVERITY_ORDER[a.status.key] - BUDGET_SEVERITY_ORDER[c.status.key];
+			return severity_diff !== 0 ? severity_diff : c.status.percent - a.status.percent;
+		});
+	const over_budget_count = rows.filter((row) => row.status.key === "critical").length;
+	const near_limit_count = rows.filter((row) => row.status.key === "warning").length;
+
+	return `
+		<div class="budget-summary">
+			<div class="budget-summary-stats">
+				<div class="budget-tile">
+					<div class="budget-tile-icon" style="background: var(--blue-50); color: var(--blue-500);">
+						${frappe.utils.icon("wallet", "md")}
+					</div>
+					<div>
+						<div class="budget-stat-label">${__("Total Budget")}</div>
+						<div class="budget-stat-value">${format_currency(total_budget, currency)}</div>
+					</div>
+				</div>
+				<div class="budget-tile">
+					<div class="budget-tile-icon" style="background: ${overall.track}; color: ${overall.fill};">
+						${frappe.utils.icon("receipt", "md")}
+					</div>
+					<div>
+						<div class="budget-stat-label">${__("Actual Spend")}</div>
+						<div class="budget-stat-value">${format_currency(actual_spend, currency)}</div>
+					</div>
+				</div>
+				<div class="budget-tile">
+					<div class="budget-tile-icon" style="background: ${overall.track}; color: ${overall.fill};">
+						${frappe.utils.icon("coins", "md")}
+					</div>
+					<div>
+						<div class="budget-stat-label">${__("Remaining")}</div>
+						<div class="budget-stat-value" style="color: ${remaining < 0 ? "var(--red-600)" : "inherit"};">
+							${negative_marker(remaining < 0)}${format_currency(remaining, currency)}
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="budget-meter-block">
+				<div class="budget-meter-header">
+					<span class="budget-status-pill" style="background: ${overall.track}; color: ${overall.text};">
+						${frappe.utils.icon(overall.icon, "xs")} ${overall.label}
+					</span>
+					<span class="budget-meter-percent" style="color: ${overall.text};">
+						${overall.percent.toFixed(1)}% ${__("consumed")}
+					</span>
+				</div>
+				<div class="budget-bar-track" style="background: ${overall.track};"
+					title="${__("Spent {0} of {1} budget", [format_currency(actual_spend, currency), format_currency(total_budget, currency)])}">
+					<div class="budget-bar-fill" style="width: ${overall_percent}%; background: ${overall.fill};"></div>
+				</div>
+			</div>
+
+			<div class="budget-accounts">
+				<div class="budget-accounts-header">
+					<span class="budget-accounts-title">${__("Expense Heads")}</span>
+					${build_risk_summary_html(over_budget_count, near_limit_count)}
+				</div>
+				${rows.map((row) => build_budget_row_html(row.b, row.status, currency)).join("")}
+			</div>
+		</div>
+	`;
+}
+
+function build_risk_summary_html(over_budget_count, near_limit_count) {
+	if (!over_budget_count && !near_limit_count) {
+		return `<span class="budget-risk-summary budget-risk-ok">${frappe.utils.icon(
+			"trending-up",
+			"xs"
+		)} ${__("All within budget")}</span>`;
+	}
+
+	const parts = [];
+	if (over_budget_count) {
+		parts.push(__("{0} over budget", [over_budget_count]));
+	}
+	if (near_limit_count) {
+		parts.push(__("{0} near limit", [near_limit_count]));
+	}
+
+	return `
+		<span class="budget-risk-summary ${over_budget_count ? "budget-risk-critical" : "budget-risk-warning"}">
+			${frappe.utils.icon(over_budget_count ? "trending-down" : "triangle-alert", "xs")} ${parts.join(" · ")}
+		</span>
+	`;
+}
+
+function build_budget_row_html(b, status, currency) {
+	const budget_amount = flt(b.budget_amount);
+	const actual_amount = flt(b.actual_amount);
+	const row_remaining = budget_amount - actual_amount;
+	const row_percent = Math.min(status.percent, 100);
+
+	return `
+		<div class="budget-row">
+			<div class="budget-row-top">
+				<a class="budget-row-account" href="/app/budget/${encodeURIComponent(b.name)}" target="_blank">
+					${frappe.utils.escape_html(b.account || b.name)}
+				</a>
+				<span class="budget-row-percent" style="color: ${status.text};">${status.percent.toFixed(0)}%</span>
+			</div>
+			<div class="budget-bar-track budget-bar-track-sm" style="background: ${status.track};"
+				title="${__("Spent {0} of {1} budgeted", [format_currency(actual_amount, currency), format_currency(budget_amount, currency)])}">
+				<div class="budget-bar-fill" style="width: ${row_percent}%; background: ${status.fill};"></div>
+			</div>
+			<div class="budget-row-figures">
+				<div class="budget-row-figure">
+					<span class="budget-row-figure-label">${__("Budgeted")}</span>
+					<span class="budget-row-figure-value">${format_currency(budget_amount, currency)}</span>
+				</div>
+				<div class="budget-row-figure">
+					<span class="budget-row-figure-label">${__("Spent")}</span>
+					<span class="budget-row-figure-value">${format_currency(actual_amount, currency)}</span>
+				</div>
+				<div class="budget-row-figure">
+					<span class="budget-row-figure-label">${__("Remaining")}</span>
+					<span class="budget-row-figure-value" style="color: ${row_remaining < 0 ? "var(--red-600)" : "inherit"};">
+						${negative_marker(row_remaining < 0)}${format_currency(row_remaining, currency)}
+					</span>
+				</div>
+			</div>
+		</div>
+	`;
+}
+
+function inject_budget_summary_style() {
+	if (document.getElementById("budget-summary-style")) {
+		return;
+	}
+	const style = document.createElement("style");
+	style.id = "budget-summary-style";
+	style.textContent = `
+		.budget-summary {
+			padding: 16px;
+			background: var(--subtle-fg);
+			border: 1px solid var(--border-color);
+			border-radius: var(--border-radius-lg, 10px);
+		}
+
+		.budget-summary-stats { display: flex; gap: 12px; margin-bottom: 18px; flex-wrap: wrap; }
+		.budget-tile {
+			flex: 1 1 180px;
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			padding: 12px 14px;
+			border-radius: var(--border-radius-md, 8px);
+			background: var(--card-bg, var(--fg-color));
+			border: 1px solid var(--border-color, var(--dark-border-color));
+			transition: box-shadow 0.15s ease;
+		}
+		.budget-tile:hover { box-shadow: var(--shadow-sm); }
+		.budget-tile-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 34px;
+			height: 34px;
+			border-radius: var(--border-radius-md, 8px);
+			flex-shrink: 0;
+		}
+		.budget-stat-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.02em; }
+		.budget-stat-value { font-size: 17px; font-weight: 600; line-height: 1.4; }
+
+		.budget-meter-block { margin-bottom: 20px; }
+		.budget-meter-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; flex-wrap: wrap; gap: 6px; }
+		.budget-status-pill {
+			display: inline-flex;
+			align-items: center;
+			gap: 4px;
+			font-size: 11px;
+			font-weight: 600;
+			padding: 2px 8px;
+			border-radius: var(--border-radius-full, 999px);
+		}
+		.budget-meter-percent { font-size: 12px; font-weight: 500; }
+
+		.budget-bar-track { position: relative; height: 10px; border-radius: var(--border-radius-full, 999px); overflow: hidden; }
+		.budget-bar-track-sm { height: 6px; }
+		.budget-bar-fill { height: 100%; border-radius: var(--border-radius-full, 999px); transition: width 0.4s ease; }
+
+		.budget-negative-icon { display: inline-flex; vertical-align: -1px; margin-right: 2px; }
+
+		.budget-accounts-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; flex-wrap: wrap; gap: 6px; }
+		.budget-accounts-title { font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.02em; }
+		.budget-risk-summary { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; }
+		.budget-risk-ok { color: var(--green-600); }
+		.budget-risk-warning { color: var(--orange-600); }
+		.budget-risk-critical { color: var(--red-600); }
+
+		.budget-accounts { display: flex; flex-direction: column; gap: 4px; }
+		.budget-row {
+			padding: 10px 12px;
+			border-radius: var(--border-radius-md, 8px);
+			transition: background 0.15s ease;
+		}
+		.budget-row:hover { background: var(--subtle-fg); }
+		.budget-row-top { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 6px; gap: 8px; }
+		.budget-row-account { font-size: 13px; font-weight: 500; color: var(--text-color); }
+		.budget-row-account:hover { color: var(--blue-500); }
+		.budget-row-percent { font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+		.budget-row-figures { display: flex; gap: 20px; margin-top: 8px; flex-wrap: wrap; }
+		.budget-row-figure { display: flex; flex-direction: column; gap: 1px; }
+		.budget-row-figure-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.02em; }
+		.budget-row-figure-value { font-size: 12px; font-weight: 500; font-variant-numeric: tabular-nums; }
+
+		.budget-empty { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 16px 4px; color: var(--text-muted); }
+		.budget-empty-icon { color: var(--text-muted); opacity: 0.6; }
+		.budget-empty-cta { display: inline-flex; align-items: center; gap: 4px; }
+
+		.budget-skeleton { background: var(--subtle-fg); border-radius: var(--border-radius-md, 8px); animation: budget-pulse 1.2s ease-in-out infinite; }
+		.budget-skeleton-stats { display: flex; gap: 12px; margin-bottom: 18px; }
+		.budget-skeleton-tile { flex: 1 1 180px; height: 58px; }
+		.budget-skeleton-bar { height: 16px; }
+		@keyframes budget-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+	`;
+	document.head.appendChild(style);
+}
