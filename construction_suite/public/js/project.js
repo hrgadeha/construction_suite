@@ -28,8 +28,39 @@ const BUDGET_STATUS = {
 frappe.ui.form.on("Project", {
 	refresh(frm) {
 		render_budget_summary(frm);
+		set_budget_and_purchase_buttons(frm);
 	},
 });
+
+function set_budget_and_purchase_buttons(frm) {
+	if (frm.is_new()) {
+		return;
+	}
+
+	// merge (not overwrite) in case another app's `setup` handler also set make_methods
+	frm.make_methods = Object.assign({}, frm.make_methods, {
+		Budget: () => make_project_budget(frm),
+	});
+
+	if (frappe.model.can_create("Budget")) {
+		frm.add_custom_button(__("Budget"), () => frm.make_new("Budget"), __("Create"));
+	}
+	if (frappe.model.can_create("Purchase Order")) {
+		frm.add_custom_button(__("Purchase Order"), () => frm.make_new("Purchase Order"), __("Create"));
+	}
+}
+
+function make_project_budget(frm) {
+	const fiscal_year = erpnext.utils.get_fiscal_year(frappe.datetime.get_today());
+	frappe.route_options = {
+		budget_against: "Project",
+		project: frm.doc.name,
+		company: frm.doc.company,
+		from_fiscal_year: fiscal_year,
+		to_fiscal_year: fiscal_year,
+	};
+	frappe.new_doc("Budget");
+}
 
 function render_budget_summary(frm) {
 	const field = frm.fields_dict.custom_budget_summary;
@@ -50,6 +81,45 @@ function render_budget_summary(frm) {
 		args: { project: frm.doc.name },
 		callback: (r) => {
 			field.$wrapper.html(build_budget_summary_html(frm, r.message || []));
+			field.$wrapper.find(".budget-empty-cta").on("click", () => make_project_budget(frm));
+
+			const currency = frm.doc.currency || frappe.defaults.get_default("currency");
+			field.$wrapper.find(".budget-row-toggle").on("click", function () {
+				toggle_budget_transactions($(this).closest(".budget-row"), currency);
+			});
+		},
+	});
+}
+
+function toggle_budget_transactions($row, currency) {
+	const budget_name = $row.data("budget");
+	const $toggle = $row.find(".budget-row-toggle");
+	const $container = $row.find(".budget-row-transactions");
+	const is_open = $row.hasClass("budget-row-expanded");
+
+	if (is_open) {
+		$row.removeClass("budget-row-expanded");
+		$toggle.html(frappe.utils.icon("chevron-right", "xs"));
+		$container.slideUp(150);
+		return;
+	}
+
+	$row.addClass("budget-row-expanded");
+	$toggle.html(frappe.utils.icon("chevron-down", "xs"));
+
+	if ($container.data("loaded")) {
+		$container.slideDown(150);
+		return;
+	}
+
+	$container.html(`<div class="budget-txn-loading">${__("Loading transactions...")}</div>`).show();
+
+	frappe.call({
+		method: "construction_suite.construction_suite.api.project.get_budget_transactions",
+		args: { budget: budget_name },
+		callback: (r) => {
+			$container.data("loaded", true);
+			$container.html(build_transactions_html(r.message || [], currency));
 		},
 	});
 }
@@ -88,10 +158,9 @@ function build_budget_summary_html(frm, budgets) {
 				<div class="budget-empty">
 					<div class="budget-empty-icon">${frappe.utils.icon("wallet", "lg")}</div>
 					<div class="budget-empty-text">${__("No submitted Budget raised against this Project yet.")}</div>
-					<a class="btn btn-default btn-sm budget-empty-cta"
-						href="/app/budget/new?project=${encodeURIComponent(frm.doc.name)}&budget_against=Project" target="_blank">
+					<button type="button" class="btn btn-default btn-sm budget-empty-cta">
 						${frappe.utils.icon("plus", "xs")} ${__("Create Budget")}
-					</a>
+					</button>
 				</div>
 			</div>
 		`;
@@ -202,8 +271,9 @@ function build_budget_row_html(b, status, currency) {
 	const row_percent = Math.min(status.percent, 100);
 
 	return `
-		<div class="budget-row">
+		<div class="budget-row" data-budget="${frappe.utils.escape_html(b.name)}">
 			<div class="budget-row-top">
+				<span class="budget-row-toggle">${frappe.utils.icon("chevron-right", "xs")}</span>
 				<a class="budget-row-account" href="/app/budget/${encodeURIComponent(b.name)}" target="_blank">
 					${frappe.utils.escape_html(b.account || b.name)}
 				</a>
@@ -229,7 +299,55 @@ function build_budget_row_html(b, status, currency) {
 					</span>
 				</div>
 			</div>
+			<div class="budget-row-transactions"></div>
 		</div>
+	`;
+}
+
+function build_transactions_html(rows, currency) {
+	if (!rows.length) {
+		return `<div class="budget-txn-empty">${__("No transactions found for this expense head.")}</div>`;
+	}
+
+	return `
+		<table class="budget-txn-table">
+			<thead>
+				<tr>
+					<th>${__("Voucher")}</th>
+					<th>${__("Date")}</th>
+					<th>${__("Description")}</th>
+					<th class="budget-r">${__("Qty")}</th>
+					<th>${__("UOM")}</th>
+					<th class="budget-r">${__("Rate")}</th>
+					<th class="budget-r">${__("Amount")}</th>
+				</tr>
+			</thead>
+			<tbody>
+				${rows.map((row) => build_transaction_row_html(row, currency)).join("")}
+			</tbody>
+		</table>
+	`;
+}
+
+function build_transaction_row_html(row, currency) {
+	const doctype_route = frappe.router.slug(row.voucher_type);
+	return `
+		<tr>
+			<td>
+				<a href="/app/${doctype_route}/${encodeURIComponent(row.voucher_no)}" target="_blank">
+					${frappe.utils.escape_html(row.voucher_no)}
+				</a>
+				<div class="budget-txn-type">${frappe.utils.escape_html(__(row.voucher_type))}${
+					row.party ? " · " + frappe.utils.escape_html(row.party) : ""
+				}</div>
+			</td>
+			<td>${row.posting_date ? frappe.datetime.str_to_user(row.posting_date) : "-"}</td>
+			<td>${frappe.utils.escape_html(row.description || "-")}</td>
+			<td class="budget-r">${row.qty != null ? row.qty : "-"}</td>
+			<td>${row.uom ? frappe.utils.escape_html(row.uom) : "-"}</td>
+			<td class="budget-r">${row.rate != null ? format_currency(row.rate, currency) : "-"}</td>
+			<td class="budget-r">${format_currency(row.amount, currency)}</td>
+		</tr>
 	`;
 }
 
@@ -305,8 +423,9 @@ function inject_budget_summary_style() {
 			transition: background 0.15s ease;
 		}
 		.budget-row:hover { background: var(--subtle-fg); }
-		.budget-row-top { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 6px; gap: 8px; }
-		.budget-row-account { font-size: 13px; font-weight: 500; color: var(--text-color); }
+		.budget-row-top { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+		.budget-row-toggle { display: inline-flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-muted); flex-shrink: 0; }
+		.budget-row-account { flex: 1; font-size: 13px; font-weight: 500; color: var(--text-color); }
 		.budget-row-account:hover { color: var(--blue-500); }
 		.budget-row-percent { font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
 
@@ -314,6 +433,15 @@ function inject_budget_summary_style() {
 		.budget-row-figure { display: flex; flex-direction: column; gap: 1px; }
 		.budget-row-figure-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.02em; }
 		.budget-row-figure-value { font-size: 12px; font-weight: 500; font-variant-numeric: tabular-nums; }
+
+		.budget-row-transactions { display: none; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border-color); overflow-x: auto; }
+		.budget-txn-loading, .budget-txn-empty { font-size: 12px; color: var(--text-muted); padding: 6px 0; }
+		.budget-txn-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+		.budget-txn-table th { text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 0.02em; color: var(--text-muted); padding: 0 8px 6px; font-weight: 600; }
+		.budget-txn-table td { padding: 6px 8px; border-top: 1px solid var(--border-color); vertical-align: top; font-variant-numeric: tabular-nums; }
+		.budget-txn-table tr:first-child td { border-top: none; }
+		.budget-txn-type { font-size: 10px; color: var(--text-muted); margin-top: 1px; }
+		.budget-r { text-align: right; }
 
 		.budget-empty { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 16px 4px; color: var(--text-muted); }
 		.budget-empty-icon { color: var(--text-muted); opacity: 0.6; }

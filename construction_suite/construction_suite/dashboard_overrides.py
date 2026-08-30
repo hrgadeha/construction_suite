@@ -55,5 +55,6 @@ def get_project_dashboard_data(data=None):
 			{"label": _("Project"), "items": ["Task", "Timesheet", "Project Update"]},
 			{"label": _("Sales"), "items": ["Sales Order", "Sales Invoice"]},
 			{"label": _("Purchase"), "items": ["Purchase Order", "Purchase Invoice"]},
+			{"label": _("Budget"), "items": ["Budget"]},
 		],
 	}
