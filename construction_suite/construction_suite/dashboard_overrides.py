@@ -58,3 +58,65 @@ def get_project_dashboard_data(data=None):
 			{"label": _("Budget"), "items": ["Budget"]},
 		],
 	}
+
+def get_po_dashboard_data(data=None):
+	return {
+		"fieldname": "purchase_order",
+		"non_standard_fieldnames": {
+			"Payment Entry": "reference_name",
+		},
+		"internal_links": {
+			"Supplier Quotation": ["items", "supplier_quotation"],
+			"Project": ["items", "project"],
+		},
+		"transactions": [
+			{"label": _("Related"), "items": ["Purchase Invoice"]},
+			{"label": _("Payment"), "items": ["Payment Entry"]},
+			{
+				"label": _("Reference"),
+				"items": ["Supplier Quotation", "Project"],
+			},
+		],
+	}
+
+def get_pi_dashboard_data(data=None):
+	return {
+		"fieldname": "purchase_invoice",
+		"non_standard_fieldnames": {
+			"Payment Entry": "reference_name",
+			"Purchase Invoice": "return_against",
+		},
+		"internal_links": {
+			"Purchase Order": ["items", "purchase_order"],
+		},
+		"transactions": [
+			{"label": _("Payment"), "items": ["Payment Entry"]},
+			{
+				"label": _("Reference"),
+				"items": ["Purchase Order"],
+			},
+			{"label": _("Returns"), "items": ["Purchase Invoice"]},
+		],
+	}
+
+def get_si_dashboard_data(data=None):
+	return {
+		"fieldname": "sales_invoice",
+		"non_standard_fieldnames": {
+			"Payment Entry": "reference_name",
+			"Sales Invoice": "return_against",
+		},
+		"internal_links": {
+			"Sales Order": ["items", "sales_order"],
+		},
+		"transactions": [
+			{
+				"label": _("Payment"),
+				"items": [
+					"Payment Entry"
+				],
+			},
+			{"label": _("Reference"), "items": ["Sales Order"]},
+			{"label": _("Returns"), "items": ["Sales Invoice"]},
+		],
+	}

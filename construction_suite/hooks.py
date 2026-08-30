@@ -279,6 +279,9 @@ override_doctype_dashboards = {
 	"Quotation": "construction_suite.construction_suite.dashboard_overrides.get_quotation_dashboard_data",
 	"Sales Order": "construction_suite.construction_suite.dashboard_overrides.get_sales_order_dashboard_data",
 	"Project": "construction_suite.construction_suite.dashboard_overrides.get_project_dashboard_data",
+	"Purchase Order": "construction_suite.construction_suite.dashboard_overrides.get_po_dashboard_data",
+	"Purchase Invoice": "construction_suite.construction_suite.dashboard_overrides.get_pi_dashboard_data",
+	"Sales Invoice": "construction_suite.construction_suite.dashboard_overrides.get_si_dashboard_data",
 }
 
 # override_doctype_dashboards = {
