@@ -32,11 +32,21 @@ const MANPOWER_CATEGORY_ICONS = {
 	laborer: "👷",
 	operator: "🕹️",
 };
+const MATERIAL_ITEM_GROUP_PARENT = "Material";
+const MATERIAL_CATEGORY_ICONS = {
+	pipe: "🧱",
+	casing: "🧱",
+	consumable: "🧴",
+	cutting: "⚙️",
+	teeth: "⚙️",
+	backfill: "🪨",
+};
 
 frappe.ui.form.on("Bill of Quantities", {
 	refresh(frm) {
 		style_boq_button(frm, "add_machinery");
 		style_boq_button(frm, "add_manpower");
+		style_boq_button(frm, "add_material");
 		style_boq_button(frm, "add_item");
 		style_section_headings(frm);
 		style_concrete_hardness_checkboxes(frm);
@@ -52,6 +62,9 @@ frappe.ui.form.on("Bill of Quantities", {
 	},
 	add_manpower(frm) {
 		open_manpower_dialog(frm);
+	},
+	add_material(frm) {
+		open_material_dialog(frm);
 	},
 	add_item(frm) {
 		open_additional_compliance_item_dialog(frm);
@@ -378,6 +391,7 @@ function calculate_boq_totals(frm) {
 	calculate_total_days(frm);
 	sync_row_days_with_total_days(frm);
 	calculate_manpower_totals(frm);
+	calculate_total_material_cost(frm);
 	calculate_diamond_bit_consumable(frm);
 	calculate_total_machinery_cost(frm);
 	calculate_mobilisation_costs(frm);
@@ -410,6 +424,7 @@ function calculate_sub_total(frm) {
 		(frm.doc.total_mob_cost || 0) +
 		(frm.doc.total_manpower_cost || 0) +
 		(frm.doc.total_machinery_cost || 0) +
+		(frm.doc.total_material_cost || 0) +
 		(frm.doc.total_management_and_compliance_cost || 0);
 	frm.set_value("sub_total", sub_total);
 }
@@ -454,6 +469,14 @@ function calculate_manpower_totals(frm) {
 	});
 	frm.set_value("total_manpower", total_manpower);
 	frm.set_value("total_manpower_cost", total_manpower_cost);
+}
+
+function calculate_total_material_cost(frm) {
+	const total_material_cost = (frm.doc.material_list || []).reduce(
+		(total, row) => total + flt(row.amount),
+		0
+	);
+	frm.set_value("total_material_cost", total_material_cost);
 }
 
 function calculate_total_machinery_cost(frm) {
@@ -541,6 +564,23 @@ function recalculate_manpower_row_amount(frm, cdt, cdn) {
 	frappe.model.set_value(cdt, cdn, "amount", (qty * rate * no_of_days));
 	calculate_boq_totals(frm);
 	calculate_all_milestone_costs(frm);
+}
+
+frappe.ui.form.on("Bill of Quantities Material Item", {
+	qty(frm, cdt, cdn) {
+		recalculate_material_row_amount(frm, cdt, cdn);
+	},
+	rate(frm, cdt, cdn) {
+		recalculate_material_row_amount(frm, cdt, cdn);
+	},
+});
+
+function recalculate_material_row_amount(frm, cdt, cdn) {
+	const row = locals[cdt][cdn];
+	const qty = row.qty || 0;
+	const rate = row.rate || 0;
+	frappe.model.set_value(cdt, cdn, "amount", qty * rate);
+	calculate_boq_totals(frm);
 }
 
 const MOB_PREMIUM_CARD_PALETTE = [
@@ -851,7 +891,7 @@ function open_boq_print_format_pdf(frm, print_format, dirty_message) {
 	const url = frappe.urllib.get_full_url(
 		`/api/method/frappe.utils.print_format.download_pdf?doctype=${encodeURIComponent(
 			frm.doctype
-		)}&name=${encodeURIComponent(frm.docname)}&format=${encodeURIComponent(print_format)}&no_letterhead=0`
+		)}&name=${encodeURIComponent(frm.docname)}&format=${encodeURIComponent(print_format)}&no_letterhead=1`
 	);
 	window.open(url, "_blank");
 }
@@ -884,6 +924,23 @@ function open_manpower_dialog(frm) {
 		fetch_boq_items_by_group(item_groups).then((items_by_group) => {
 			apply_boq_item_prices(frm, items_by_group).then(() => {
 				const dialog = build_manpower_dialog(frm, item_groups, items_by_group);
+				dialog.show();
+			});
+		});
+	});
+}
+
+function open_material_dialog(frm) {
+	fetch_boq_item_groups(MATERIAL_ITEM_GROUP_PARENT).then((item_groups) => {
+		if (!item_groups.length) {
+			frappe.msgprint(
+				__('No material categories found under the "{0}" Item Group.', [MATERIAL_ITEM_GROUP_PARENT])
+			);
+			return;
+		}
+		fetch_boq_items_by_group(item_groups).then((items_by_group) => {
+			apply_boq_item_prices(frm, items_by_group).then(() => {
+				const dialog = build_material_dialog(frm, item_groups, items_by_group);
 				dialog.show();
 			});
 		});
@@ -1082,6 +1139,36 @@ function build_manpower_dialog(frm, item_groups, items_by_group) {
 	return dialog;
 }
 
+function build_material_dialog(frm, item_groups, items_by_group) {
+	const fields = [];
+	item_groups.forEach((group) => {
+		fields.push(
+			...build_boq_category_fields({
+				prefix: "material",
+				group,
+				items: items_by_group[group.name],
+				icon_map: MATERIAL_CATEGORY_ICONS,
+				fallback_icon: "📦",
+				build_label: (item) => format_material_option_label(item),
+			})
+		);
+	});
+
+	const dialog = new frappe.ui.Dialog({
+		title: __("Add Material"),
+		size: "extra-large",
+		fields,
+		primary_action_label: __("Add"),
+		primary_action() {
+			add_selected_material_to_grid(frm, dialog, item_groups, items_by_group);
+		},
+	});
+
+	style_boq_dialog(dialog);
+
+	return dialog;
+}
+
 function format_machinery_option_label(item, custom_has_mobilisation_fee) {
 	let label = `${item.item_name} — ${format_currency(item.rate || 0)}/${item.uom || ""}`;
 	if (custom_has_mobilisation_fee && item.custom_mobilisation_premium) {
@@ -1091,6 +1178,10 @@ function format_machinery_option_label(item, custom_has_mobilisation_fee) {
 }
 
 function format_manpower_option_label(item) {
+	return `${item.item_name} — ${format_currency(item.rate || 0)}/${item.uom || ""}`;
+}
+
+function format_material_option_label(item) {
 	return `${item.item_name} — ${format_currency(item.rate || 0)}/${item.uom || ""}`;
 }
 
@@ -1165,6 +1256,41 @@ function add_selected_manpower_to_grid(frm, dialog, item_groups, items_by_group)
 	}
 
 	frm.refresh_field("manpower_list");
+	calculate_boq_totals(frm);
+	frm.dirty();
+	dialog.hide();
+}
+
+function add_selected_material_to_grid(frm, dialog, item_groups, items_by_group) {
+	let added_any = false;
+
+	item_groups.forEach((group) => {
+		const fieldname = get_boq_multicheck_fieldname("material", group.name);
+		const selected_item_codes = dialog.get_value(fieldname) || [];
+		const items = items_by_group[group.name];
+
+		selected_item_codes.forEach((item_code) => {
+			const item = items.find((candidate) => candidate.name === item_code);
+			if (!item) {
+				return;
+			}
+			const rate = item.rate || 0;
+			const row = frm.add_child("material_list");
+			row.item_code = item_code;
+			row.uom = item.uom;
+			row.qty = 1;
+			row.rate = rate;
+			row.amount = row.qty * rate;
+			added_any = true;
+		});
+	});
+
+	if (!added_any) {
+		frappe.msgprint(__("Please select at least one material item."));
+		return;
+	}
+
+	frm.refresh_field("material_list");
 	calculate_boq_totals(frm);
 	frm.dirty();
 	dialog.hide();

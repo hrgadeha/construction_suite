@@ -63,6 +63,7 @@ class BillofQuantities(Document):
 		self.sync_row_days_with_total_days()
 		self.calculate_machinery_amounts()
 		self.calculate_manpower_amounts()
+		self.calculate_material_amounts()
 		self.calculate_diamond_bit_consumable()
 		self.calculate_total_machinery_cost()
 		self.calculate_mobilisation_costs()
@@ -111,6 +112,13 @@ class BillofQuantities(Document):
 			total_manpower_cost += flt(row.amount)
 		self.total_manpower = total_manpower
 		self.total_manpower_cost = total_manpower_cost
+
+	def calculate_material_amounts(self):
+		total_material_cost = 0
+		for row in self.material_list:
+			row.amount = flt(row.qty) * flt(row.rate)
+			total_material_cost += flt(row.amount)
+		self.total_material_cost = total_material_cost
 
 	def get_hardness_factor(self):
 		for fieldname, factor in CONCRETE_HARDNESS_FACTORS.items():
@@ -162,6 +170,7 @@ class BillofQuantities(Document):
 			flt(self.total_mob_cost)
 			+ flt(self.total_manpower_cost)
 			+ flt(self.total_machinery_cost)
+			+ flt(self.total_material_cost)
 			+ flt(self.total_management_and_compliance_cost)
 		)
 

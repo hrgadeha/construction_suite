@@ -57,6 +57,9 @@
   "add_manpower",
   "manpower_list",
   "total_manpower",
+  "section_break_osyo",
+  "add_material",
+  "material_list",
   "lta_compliance_costs_section",
   "pe_lifting_plan",
   "noise_vib_monitor",
@@ -83,6 +86,7 @@
   "column_break_ogfj",
   "total_manpower_cost",
   "total_machinery_cost",
+  "total_material_cost",
   "total_management_and_compliance_cost",
   "sub_total",
   "margins_and_notes_section",
@@ -388,7 +392,7 @@
   {
    "fieldname": "lta_compliance_costs_section",
    "fieldtype": "Section Break",
-   "label": "\ud83d\udccb 5 \u00b7 LTA Compliance Costs"
+   "label": "\ud83d\udccb 6 \u00b7 LTA Compliance Costs"
   },
   {
    "default": "0",
@@ -439,7 +443,7 @@
   {
    "fieldname": "overhead_and_diesel_section",
    "fieldtype": "Section Break",
-   "label": "\u26fd 6 \u00b7 Overhead & Diesel"
+   "label": "\u26fd 7 \u00b7 Overhead & Diesel"
   },
   {
    "default": "0",
@@ -469,7 +473,7 @@
   {
    "fieldname": "margins_and_notes_section",
    "fieldtype": "Section Break",
-   "label": "\ud83d\udcca 8 \u00b7 Margins and Notes"
+   "label": "\ud83d\udcca 9 \u00b7 Margins and Notes"
   },
   {
    "default": "0",
@@ -510,7 +514,7 @@
   {
    "fieldname": "total_section",
    "fieldtype": "Section Break",
-   "label": "\ud83d\udd22 7 \u00b7 Calculated Values"
+   "label": "\ud83d\udd22 8 \u00b7 Calculated Values"
   },
   {
    "default": "0",
@@ -552,6 +556,14 @@
    "fieldname": "total_machinery_cost",
    "fieldtype": "Currency",
    "label": "Total Machinery Cost",
+   "options": "currency",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "total_material_cost",
+   "fieldtype": "Currency",
+   "label": "Total Material Cost",
    "options": "currency",
    "read_only": 1
   },
@@ -612,7 +624,7 @@
   {
    "fieldname": "project_planning_section",
    "fieldtype": "Section Break",
-   "label": "\ud83d\udcc5 9 \u00b7 Project Planning"
+   "label": "\ud83d\udcc5 10 \u00b7 Project Planning"
   },
   {
    "fieldname": "milestones",
@@ -660,13 +672,29 @@
    "label": "Client Name",
    "mandatory_depends_on": "eval:doc.boq_for == \"Opportunity\"",
    "read_only": 1
+  },
+  {
+   "fieldname": "section_break_osyo",
+   "fieldtype": "Section Break",
+   "label": "\ud83d\udce6 5 \u00b7  Material & Consumable Allocation"
+  },
+  {
+   "fieldname": "add_material",
+   "fieldtype": "Button",
+   "label": "Add Material"
+  },
+  {
+   "fieldname": "material_list",
+   "fieldtype": "Table",
+   "label": "Material List",
+   "options": "Bill of Quantities Material Item"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-08-14 02:28:17.951699",
+ "modified": "2026-09-15 19:04:57.799288",
  "modified_by": "Administrator",
  "module": "Construction Suite",
  "name": "Bill of Quantities",
