@@ -1,0 +1,23 @@
+{
+ "app": "construction_suite",
+ "creation": "2026-10-10 02:17:42.460555",
+ "docstatus": 0,
+ "doctype": "Dock",
+ "idx": 0,
+ "items": [
+  {
+   "added": 0,
+   "hidden": 0,
+   "icon": "hard-hat",
+   "link_to": "Construction Suite",
+   "link_type": "Sidebar",
+   "title": "Construction Suite"
+  }
+ ],
+ "modified": "2026-10-10 02:17:42.460555",
+ "modified_by": "Administrator",
+ "name": "construction_suite",
+ "owner": "Administrator",
+ "standard": 1,
+ "user": ""
+}

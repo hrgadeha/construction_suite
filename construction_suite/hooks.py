@@ -4,6 +4,7 @@ app_publisher = "Hardik Gadesha"
 app_description = "App to manage Construction Project"
 app_email = "hardikgadesha@gmail.com"
 app_license = "mit"
+app_logo_url = "/assets/construction_suite/images/logo.png"
 
 # Apps
 # ------------------
@@ -11,15 +12,17 @@ app_license = "mit"
 # required_apps = []
 
 # Each item in the list will be shown as an app in the apps page
-# add_to_apps_screen = [
-# 	{
-# 		"name": "construction_suite",
-# 		"logo": "/assets/construction_suite/logo.png",
-# 		"title": "Construction Suite",
-# 		"route": "/construction_suite",
-# 		"has_permission": "construction_suite.api.permission.has_app_permission"
-# 	}
-# ]
+# No explicit "route" here on purpose: construction_suite ships no Workspace of its own (yet),
+# so the client falls through to the first visible rail entry in our Dock/Sidebar instead
+# (see frappe/tests/test_dock_preferences.py::TestTheLandingFloor for this fallback ladder).
+add_to_apps_screen = [
+	{
+		"name": app_name,
+		"logo": app_logo_url,
+		"title": app_title,
+		"sequence_id": 3,
+	}
+]
 
 # Includes in <head>
 # ------------------
