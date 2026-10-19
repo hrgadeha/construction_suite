@@ -299,7 +299,7 @@ function fetch_boq_summary_item_names(item_codes) {
 		.get_list("Item", {
 			filters: { name: ["in", item_codes] },
 			fields: ["name", "item_name"],
-			limit_page_length: 0,
+			limit: 0,
 		})
 		.then((rows) => {
 			const item_names = {};

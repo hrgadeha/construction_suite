@@ -31,7 +31,7 @@ function render_project_order_summary(frm) {
 			filters: { project: frm.doc.project, docstatus: ["!=", 2] },
 			fields: ["name"],
 			order_by: "transaction_date desc",
-			limit_page_length: 0,
+			limit: 0,
 		})
 		.then((rows) => {
 			if (!rows.length) {

@@ -284,7 +284,7 @@ function fetch_milestone_item_names(frm) {
 		.get_list("Item", {
 			filters: { name: ["in", unique_codes] },
 			fields: ["name", "item_name"],
-			limit_page_length: 0,
+			limit: 0,
 		})
 		.then((rows) => {
 			const item_names = {};
@@ -987,7 +987,7 @@ function fetch_boq_item_groups(parent_item_group, extra_fields = []) {
 		filters: { parent_item_group },
 		fields: ["name", ...extra_fields],
 		order_by: "name asc",
-		limit_page_length: 0,
+		limit: 0,
 	});
 }
 
@@ -998,7 +998,7 @@ function fetch_boq_items_by_group(item_groups, extra_fields = []) {
 				filters: { item_group: group.name, disabled: 0 },
 				fields: ["name", "item_name", "stock_uom", ...extra_fields],
 				order_by: "item_name asc",
-				limit_page_length: 0,
+				limit: 0,
 			})
 		)
 	).then((results) => {
@@ -1035,7 +1035,7 @@ function fetch_boq_item_prices(item_codes, currency) {
 			filters,
 			fields: ["item_code", "price_list_rate", "uom", "valid_from"],
 			order_by: "valid_from desc",
-			limit_page_length: 0,
+			limit: 0,
 		})
 		.then((rows) => {
 			const price_by_item_code = {};
