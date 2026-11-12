@@ -42,6 +42,24 @@ const MATERIAL_CATEGORY_ICONS = {
 	backfill: "🪨",
 };
 
+// Select fields re-skinned as clickable cards (see render_select_as_cards). Each entry maps
+// option value -> icon (optional; omit for a plain text card).
+const BOQ_SELECT_CARD_FIELDS = {
+	work_type: {
+		Coring: "🕳️",
+		Demolition: "💥",
+		"King Post Removal": "🏗️",
+		"Pile Installation": "🔩",
+	},
+	demolition_method: {
+		"Saw Cutting": "🪚",
+		"Manual Hacking": "🔨",
+		"Machine Hacking": "⚒️",
+	},
+	pile_type: {},
+	npt_value: {},
+};
+
 frappe.ui.form.on("Bill of Quantities", {
 	refresh(frm) {
 		style_boq_button(frm, "add_machinery");
@@ -52,6 +70,7 @@ frappe.ui.form.on("Bill of Quantities", {
 		style_concrete_hardness_checkboxes(frm);
 		bind_concrete_hardness_block_click(frm);
 		update_concrete_hardness_active_state(frm);
+		render_all_select_cards(frm);
 		calculate_planned_total_days(frm);
 		calculate_all_milestone_costs(frm);
 		style_milestone_assign_button(frm);
@@ -101,6 +120,68 @@ frappe.ui.form.on("Bill of Quantities", {
 		calculate_boq_totals(frm);
 	},
 	diameter(frm) {
+		calculate_boq_totals(frm);
+	},
+	work_type(frm) {
+		update_select_cards_active_state(frm, "work_type");
+		calculate_boq_totals(frm);
+	},
+	demolition_method(frm) {
+		update_select_cards_active_state(frm, "demolition_method");
+		calculate_boq_totals(frm);
+	},
+	pile_type(frm) {
+		update_select_cards_active_state(frm, "pile_type");
+	},
+	npt_value(frm) {
+		update_select_cards_active_state(frm, "npt_value");
+	},
+	slab_length(frm) {
+		calculate_boq_totals(frm);
+	},
+	slab_width(frm) {
+		calculate_boq_totals(frm);
+	},
+	slab_thickness(frm) {
+		calculate_boq_totals(frm);
+	},
+	wall_length(frm) {
+		calculate_boq_totals(frm);
+	},
+	wall_width(frm) {
+		calculate_boq_totals(frm);
+	},
+	wall_thickness(frm) {
+		calculate_boq_totals(frm);
+	},
+	beam_length(frm) {
+		calculate_boq_totals(frm);
+	},
+	beam_width(frm) {
+		calculate_boq_totals(frm);
+	},
+	beam_thickness(frm) {
+		calculate_boq_totals(frm);
+	},
+	demolition_productivity_basis(frm) {
+		calculate_boq_totals(frm);
+	},
+	demolition_productivity_rate(frm) {
+		calculate_boq_totals(frm);
+	},
+	total_kingpost_weight(frm) {
+		calculate_boq_totals(frm);
+	},
+	kingpost_productivity_rate(frm) {
+		calculate_boq_totals(frm);
+	},
+	piling_perimeter(frm) {
+		calculate_boq_totals(frm);
+	},
+	piling_depth(frm) {
+		calculate_boq_totals(frm);
+	},
+	piling_productivity_rate(frm) {
 		calculate_boq_totals(frm);
 	},
 	diamond_bit_consumable(frm) {
@@ -388,6 +469,9 @@ function update_milestone_resources_summary(milestone_row, item_names) {
 function calculate_boq_totals(frm) {
 	calculate_total_mob_days(frm);
 	calculate_estimated_coring_work_days(frm);
+	calculate_demolition_scope(frm);
+	calculate_kingpost_scope(frm);
+	calculate_piling_scope(frm);
 	calculate_total_days(frm);
 	sync_row_days_with_total_days(frm);
 	calculate_manpower_totals(frm);
@@ -454,9 +538,57 @@ function calculate_total_mob_days(frm) {
 	frm.set_value("total_mob_days", (frm.doc.mob_days || 0) + (frm.doc.demob_days || 0));
 }
 
+function calculate_demolition_scope(frm) {
+	const slab_volume = (frm.doc.slab_length || 0) * (frm.doc.slab_width || 0) * (frm.doc.slab_thickness || 0);
+	const wall_volume = (frm.doc.wall_length || 0) * (frm.doc.wall_width || 0) * (frm.doc.wall_thickness || 0);
+	const beam_volume = (frm.doc.beam_length || 0) * (frm.doc.beam_width || 0) * (frm.doc.beam_thickness || 0);
+	const total_volume = slab_volume + wall_volume + beam_volume;
+
+	frm.set_value("slab_volume", slab_volume);
+	frm.set_value("wall_volume", wall_volume);
+	frm.set_value("beam_volume", beam_volume);
+	frm.set_value("total_demolition_volume", total_volume);
+
+	const rate = frm.doc.demolition_productivity_rate || 0;
+	if (!rate) {
+		frm.set_value("estimated_demolition_days", 0);
+		return;
+	}
+
+	const effective_volume = total_volume * get_hardness_factor(frm);
+	const estimated_days =
+		frm.doc.demolition_productivity_basis === "Hour per m3"
+			? Math.ceil((effective_volume * rate) / 8)
+			: Math.ceil(effective_volume / rate);
+	frm.set_value("estimated_demolition_days", estimated_days);
+}
+
+function calculate_kingpost_scope(frm) {
+	const rate = frm.doc.kingpost_productivity_rate || 0;
+	const estimated_days = rate ? Math.ceil((frm.doc.total_kingpost_weight || 0) / rate) : 0;
+	frm.set_value("estimated_kingpost_days", estimated_days);
+}
+
+function calculate_piling_scope(frm) {
+	const total_length = (frm.doc.piling_perimeter || 0) * (frm.doc.piling_depth || 0);
+	frm.set_value("total_piling_length", total_length);
+
+	const rate = frm.doc.piling_productivity_rate || 0;
+	const estimated_days = rate ? Math.ceil(total_length / rate) : 0;
+	frm.set_value("estimated_piling_days", estimated_days);
+}
+
+function get_estimated_work_days(frm) {
+	const by_work_type = {
+		Demolition: frm.doc.estimated_demolition_days,
+		"King Post Removal": frm.doc.estimated_kingpost_days,
+		"Pile Installation": frm.doc.estimated_piling_days,
+	};
+	return flt(by_work_type[frm.doc.work_type] ?? frm.doc.estimated_coring_work_days);
+}
+
 function calculate_total_days(frm) {
-	const total_days =
-		(frm.doc.estimated_coring_work_days || 0) + (frm.doc.mob_days || 0) + (frm.doc.demob_days || 0);
+	const total_days = get_estimated_work_days(frm) + (frm.doc.mob_days || 0) + (frm.doc.demob_days || 0);
 	frm.set_value("total_days", total_days);
 }
 
@@ -1357,20 +1489,44 @@ const SECTION_HEADING_STYLES = [
 	{ fieldname: "concrete_hardness_section", color: "#e8a020" },
 	{ fieldname: "coring_point_schedule_section", color: "#6f42c1" },
 	{ fieldname: "equipment_mob_premiums_section", color: "#6f42c1" },
+	{ fieldname: "section_break_pflf", color: "#1a3a5c" },
+	{ fieldname: "demolition_work_section", color: "#1a3a5c" },
+	{ fieldname: "king_post_removal_section", color: "#1a3a5c" },
+	{ fieldname: "pile_installation_section", color: "#1a3a5c" },
+	{ fieldname: "demolition_productivity_section", color: "#6f42c1" },
+	{ fieldname: "kingpost_productivity_section", color: "#6f42c1" },
+	{ fieldname: "piling_productivity_section", color: "#6f42c1" },
 ];
+
+// Smaller sub-row dividers inside a section (e.g. Slab / Wall / Beam inside Demolition
+// Scope) — bold + muted, with a rule above, so they read as "new row starts here" without
+// competing visually with the main section headers above.
+const SUBROW_HEADING_FIELDS = ["slab_row_break", "wall_row_break", "beam_row_break"];
+const SUBROW_HEADING_COLOR = "#4a5568";
 
 function style_section_headings(frm) {
 	SECTION_HEADING_STYLES.forEach(({ fieldname, color }) => {
 		style_section_heading(frm, fieldname, color);
 	});
+	SUBROW_HEADING_FIELDS.forEach((fieldname) => {
+		style_section_heading(frm, fieldname, SUBROW_HEADING_COLOR, { subrow: true });
+	});
 }
 
-function style_section_heading(frm, fieldname, color) {
+function style_section_heading(frm, fieldname, color, { subrow = false } = {}) {
 	const section = frm.fields_dict[fieldname];
 	if (section && section.head) {
 		section.head.css({
 			"font-weight": "bold",
 			color,
+			...(subrow && {
+				"text-transform": "uppercase",
+				"font-size": "11px",
+				"letter-spacing": "0.03em",
+				"border-top": "1px solid var(--border-color, #d1d8dd)",
+				"padding-top": "12px",
+				"margin-top": "4px",
+			}),
 		});
 	}
 }
@@ -1452,4 +1608,100 @@ function update_concrete_hardness_active_state(frm) {
 			field.$wrapper.toggleClass("concrete-hardness-block-active", !!frm.doc[fieldname]);
 		}
 	});
+}
+
+function render_all_select_cards(frm) {
+	inject_boq_select_cards_style();
+	Object.keys(BOQ_SELECT_CARD_FIELDS).forEach((fieldname) => {
+		render_select_as_cards(frm, fieldname, BOQ_SELECT_CARD_FIELDS[fieldname]);
+	});
+	// Belt-and-braces: make sure the Scope section shown always matches the stored Work
+	// Type, even if this form instance's field controls were reused from a previously
+	// loaded record (e.g. navigating next/prev between BOQs).
+	frm.layout.refresh_dependency();
+}
+
+function render_select_as_cards(frm, fieldname, icon_map) {
+	const field = frm.fields_dict[fieldname];
+	if (!field) {
+		return;
+	}
+
+	const options = (field.df.options || "").split("\n").filter(Boolean);
+	// Hide the whole input area (not just $input) — ControlSelect appends a separate
+	// .select-icon chevron as a sibling of $input inside .control-input, so hiding $input
+	// alone leaves that chevron visible.
+	(field.$input_wrapper || field.$input).hide();
+
+	if (!field.$boq_card_select) {
+		field.$boq_card_select = $('<div class="boq-select-cards"></div>').insertAfter(
+			field.$input_wrapper || field.$input
+		);
+	}
+	const $cards = field.$boq_card_select.empty();
+
+	options.forEach((option) => {
+		const icon = icon_map[option];
+		const $card = $(`
+			<div class="boq-select-card" data-value="${frappe.utils.escape_html(option)}">
+				${icon ? `<span class="boq-select-card-icon">${icon}</span>` : ""}
+				<span class="boq-select-card-label">${frappe.utils.escape_html(__(option))}</span>
+			</div>
+		`);
+		$card.on("click", () => {
+			frm.set_value(fieldname, option).then(() => {
+				update_select_cards_active_state(frm, fieldname);
+				frm.layout.refresh_dependency();
+			});
+		});
+		$cards.append($card);
+	});
+
+	update_select_cards_active_state(frm, fieldname);
+}
+
+function update_select_cards_active_state(frm, fieldname) {
+	const field = frm.fields_dict[fieldname];
+	if (!field || !field.$boq_card_select) {
+		return;
+	}
+	field.$boq_card_select.find(".boq-select-card").each(function () {
+		$(this).toggleClass("boq-select-card-active", $(this).data("value") === frm.doc[fieldname]);
+	});
+}
+
+function inject_boq_select_cards_style() {
+	if ($("#boq-select-cards-style").length) {
+		return;
+	}
+	$("<style>")
+		.attr("id", "boq-select-cards-style")
+		.html(`
+			.boq-select-cards { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+			.boq-select-card {
+				display: flex;
+				align-items: center;
+				gap: 6px;
+				border: 1px solid var(--border-color, #d1d8dd);
+				border-radius: 8px;
+				padding: 8px 14px;
+				cursor: pointer;
+				font-size: 13px;
+				user-select: none;
+				transition: border-color 0.15s ease, background-color 0.15s ease;
+			}
+			.boq-select-card:hover {
+				border-color: #0a0f5e;
+			}
+			.boq-select-card-icon {
+				font-size: 15px;
+				line-height: 1;
+			}
+			.boq-select-card.boq-select-card-active {
+				border-color: #0a0f5e;
+				background-color: rgba(10, 15, 94, 0.06);
+				font-weight: 600;
+			}
+		`)
+		.appendTo("head");
 }

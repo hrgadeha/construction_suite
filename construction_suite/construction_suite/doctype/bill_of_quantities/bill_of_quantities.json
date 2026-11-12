@@ -20,6 +20,7 @@
   "project_planning",
   "previous_version",
   "amended_from",
+  "work_type",
   "section_break_pflf",
   "no_of_holes",
   "column_break_lrlm",
@@ -34,6 +35,71 @@
   "high_grade",
   "column_break_jydo",
   "pile_cap",
+  "demolition_work_section",
+  "slab_row_break",
+  "slab_length",
+  "slab_width_cb",
+  "slab_width",
+  "slab_thickness_cb",
+  "slab_thickness",
+  "slab_volume_cb",
+  "slab_volume",
+  "wall_row_break",
+  "wall_length",
+  "wall_width_cb",
+  "wall_width",
+  "wall_thickness_cb",
+  "wall_thickness",
+  "wall_volume_cb",
+  "wall_volume",
+  "beam_row_break",
+  "beam_length",
+  "beam_width_cb",
+  "beam_width",
+  "beam_thickness_cb",
+  "beam_thickness",
+  "beam_volume_cb",
+  "beam_volume",
+  "total_demolition_volume_row",
+  "total_demolition_volume",
+  "demolition_method_cb",
+  "demolition_method",
+  "demolition_productivity_section",
+  "demolition_productivity_basis",
+  "column_break_dmpb",
+  "demolition_productivity_rate",
+  "column_break_dmed",
+  "estimated_demolition_days",
+  "king_post_removal_section",
+  "kingpost_size",
+  "column_break_kpsz",
+  "kingpost_min_length",
+  "column_break_kpml",
+  "kingpost_max_length",
+  "kingpost_row_break",
+  "kingpost_min_weight",
+  "column_break_kpmw",
+  "kingpost_max_weight",
+  "column_break_kptw",
+  "total_kingpost_weight",
+  "kingpost_productivity_section",
+  "kingpost_productivity_rate",
+  "column_break_kped",
+  "estimated_kingpost_days",
+  "pile_installation_section",
+  "piling_perimeter",
+  "column_break_pldp",
+  "piling_depth",
+  "column_break_pltl",
+  "total_piling_length",
+  "pile_type_row_break",
+  "pile_type",
+  "column_break_nptv",
+  "npt_value",
+  "piling_productivity_section",
+  "piling_productivity_rate",
+  "column_break_plpd",
+  "estimated_piling_days",
   "mobilisation_schedule_section",
   "mobilisation_cost_rate",
   "section_break_vvah",
@@ -174,9 +240,22 @@
    "read_only": 1
   },
   {
+   "default": "Coring",
+   "description": "Choose the scope of this BOQ. The Scope section below changes to match, and drives how the total duration is calculated.",
+   "fieldname": "work_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Work Type",
+   "options": "Coring\nDemolition\nKing Post Removal\nPile Installation",
+   "reqd": 1
+  },
+  {
+   "depends_on": "eval:doc.work_type == \"Coring\"",
    "fieldname": "section_break_pflf",
    "fieldtype": "Section Break",
-   "hide_border": 1
+   "hide_border": 1,
+   "label": "🕳️ Coring Scope"
   },
   {
    "fieldname": "no_of_holes",
@@ -203,6 +282,7 @@
    "label": "Depth (m/hole)"
   },
   {
+   "depends_on": "eval:[\"Coring\",\"Demolition\"].includes(doc.work_type)",
    "fieldname": "concrete_hardness_section",
    "fieldtype": "Section Break",
    "label": "Concrete Hardness"
@@ -246,6 +326,360 @@
    "fieldname": "pile_cap",
    "fieldtype": "Check",
    "label": "Pile Cap"
+  },
+  {
+   "depends_on": "eval:doc.work_type == \"Demolition\"",
+   "fieldname": "demolition_work_section",
+   "fieldtype": "Section Break",
+   "label": "\ud83d\udca5 Demolition Scope \u2014 Type of Item"
+  },
+  {
+   "fieldname": "slab_row_break",
+   "fieldtype": "Section Break",
+   "hide_border": 1,
+   "label": "Slab"
+  },
+  {
+   "default": "0",
+   "fieldname": "slab_length",
+   "fieldtype": "Float",
+   "label": "Slab Length (m)"
+  },
+  {
+   "fieldname": "slab_width_cb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "slab_width",
+   "fieldtype": "Float",
+   "label": "Slab Width (m)"
+  },
+  {
+   "fieldname": "slab_thickness_cb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "slab_thickness",
+   "fieldtype": "Float",
+   "label": "Slab Thickness (m)"
+  },
+  {
+   "fieldname": "slab_volume_cb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "slab_volume",
+   "fieldtype": "Float",
+   "label": "Slab Volume (m3)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "wall_row_break",
+   "fieldtype": "Section Break",
+   "hide_border": 1,
+   "label": "Wall"
+  },
+  {
+   "default": "0",
+   "fieldname": "wall_length",
+   "fieldtype": "Float",
+   "label": "Wall Length (m)"
+  },
+  {
+   "fieldname": "wall_width_cb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "wall_width",
+   "fieldtype": "Float",
+   "label": "Wall Width (m)"
+  },
+  {
+   "fieldname": "wall_thickness_cb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "wall_thickness",
+   "fieldtype": "Float",
+   "label": "Wall Thickness (m)"
+  },
+  {
+   "fieldname": "wall_volume_cb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "wall_volume",
+   "fieldtype": "Float",
+   "label": "Wall Volume (m3)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "beam_row_break",
+   "fieldtype": "Section Break",
+   "hide_border": 1,
+   "label": "Beam"
+  },
+  {
+   "default": "0",
+   "fieldname": "beam_length",
+   "fieldtype": "Float",
+   "label": "Beam Length (m)"
+  },
+  {
+   "fieldname": "beam_width_cb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "beam_width",
+   "fieldtype": "Float",
+   "label": "Beam Width (m)"
+  },
+  {
+   "fieldname": "beam_thickness_cb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "beam_thickness",
+   "fieldtype": "Float",
+   "label": "Beam Thickness (m)"
+  },
+  {
+   "fieldname": "beam_volume_cb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "beam_volume",
+   "fieldtype": "Float",
+   "label": "Beam Volume (m3)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_demolition_volume_row",
+   "fieldtype": "Section Break",
+   "hide_border": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "total_demolition_volume",
+   "fieldtype": "Float",
+   "label": "Total Volume (m3)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "demolition_method_cb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "demolition_method",
+   "fieldtype": "Select",
+   "label": "Type of Demolition",
+   "options": "Saw Cutting\nManual Hacking\nMachine Hacking"
+  },
+  {
+   "fieldname": "demolition_productivity_section",
+   "fieldtype": "Section Break",
+   "label": "\u23f1 Demolition Productivity"
+  },
+  {
+   "default": "m3 per Day",
+   "fieldname": "demolition_productivity_basis",
+   "fieldtype": "Select",
+   "label": "Productivity Basis",
+   "options": "Hour per m3\nm3 per Day"
+  },
+  {
+   "fieldname": "column_break_dmpb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "description": "Enter in the unit matching Productivity Basis: cubic metres per hour, or cubic metres per day.",
+   "fieldname": "demolition_productivity_rate",
+   "fieldtype": "Float",
+   "label": "Productivity Rate"
+  },
+  {
+   "fieldname": "column_break_dmed",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "description": "Hour per m3 is converted to days on an 8-hour working day.",
+   "fieldname": "estimated_demolition_days",
+   "fieldtype": "Float",
+   "label": "Total Working Days",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.work_type == \"King Post Removal\"",
+   "fieldname": "king_post_removal_section",
+   "fieldtype": "Section Break",
+   "label": "\ud83c\udfd7\ufe0f King Post Removal Scope"
+  },
+  {
+   "fieldname": "kingpost_size",
+   "fieldtype": "Data",
+   "label": "Kingpost Size"
+  },
+  {
+   "fieldname": "column_break_kpsz",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "kingpost_min_length",
+   "fieldtype": "Float",
+   "label": "Min Length (m)"
+  },
+  {
+   "fieldname": "column_break_kpml",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "kingpost_max_length",
+   "fieldtype": "Float",
+   "label": "Max Length (m)"
+  },
+  {
+   "fieldname": "kingpost_row_break",
+   "fieldtype": "Section Break",
+   "hide_border": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "kingpost_min_weight",
+   "fieldtype": "Float",
+   "label": "Min Weight (Ton)"
+  },
+  {
+   "fieldname": "column_break_kpmw",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "kingpost_max_weight",
+   "fieldtype": "Float",
+   "label": "Max Weight (Ton)"
+  },
+  {
+   "fieldname": "column_break_kptw",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "description": "Total weight across all king posts in this job, not per-post.",
+   "fieldname": "total_kingpost_weight",
+   "fieldtype": "Float",
+   "label": "Total Kingpost Weight (Ton)"
+  },
+  {
+   "fieldname": "kingpost_productivity_section",
+   "fieldtype": "Section Break",
+   "label": "\u23f1 Kingpost Cutting Schedule"
+  },
+  {
+   "default": "0",
+   "fieldname": "kingpost_productivity_rate",
+   "fieldtype": "Float",
+   "label": "Productivity (Ton/Day)"
+  },
+  {
+   "fieldname": "column_break_kped",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "estimated_kingpost_days",
+   "fieldtype": "Float",
+   "label": "Estimated Kingpost Cutting Days",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.work_type == \"Pile Installation\"",
+   "fieldname": "pile_installation_section",
+   "fieldtype": "Section Break",
+   "label": "\ud83d\udd29 Pile Installation Scope"
+  },
+  {
+   "default": "0",
+   "description": "Total run length of the piling line, e.g. the perimeter of a sheet-pile enclosure. For discrete piles (e.g. H-Piles), use pile count here and per-pile depth in Piling Depth.",
+   "fieldname": "piling_perimeter",
+   "fieldtype": "Float",
+   "label": "Piling Perimeter (m)"
+  },
+  {
+   "fieldname": "column_break_pldp",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "piling_depth",
+   "fieldtype": "Float",
+   "label": "Piling Depth (m)"
+  },
+  {
+   "fieldname": "column_break_pltl",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "total_piling_length",
+   "fieldtype": "Float",
+   "label": "Total Piling Length (m)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "pile_type_row_break",
+   "fieldtype": "Section Break",
+   "hide_border": 1
+  },
+  {
+   "fieldname": "pile_type",
+   "fieldtype": "Select",
+   "label": "Pile Type",
+   "options": "Hat Pile\nType IV Sheet Pile\nH Pile"
+  },
+  {
+   "fieldname": "column_break_nptv",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "npt_value",
+   "fieldtype": "Select",
+   "label": "NPT Value",
+   "options": "NPT<30\nNPT>30\nNPT>50"
+  },
+  {
+   "fieldname": "piling_productivity_section",
+   "fieldtype": "Section Break",
+   "label": "\u23f1 Piling Schedule"
+  },
+  {
+   "default": "0",
+   "fieldname": "piling_productivity_rate",
+   "fieldtype": "Float",
+   "label": "Productivity (Meter/Day)"
+  },
+  {
+   "fieldname": "column_break_plpd",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "estimated_piling_days",
+   "fieldtype": "Float",
+   "label": "Total Piling Days",
+   "read_only": 1
   },
   {
    "fieldname": "currency",
@@ -335,6 +769,7 @@
    "options": "Bill of Quantities Manpower Item"
   },
   {
+   "depends_on": "eval:doc.work_type == \"Coring\"",
    "fieldname": "coring_point_schedule_section",
    "fieldtype": "Section Break",
    "label": "\u23f1 Coring Point Schedule (Engineer Input)"

@@ -59,6 +59,9 @@ class BillofQuantities(Document):
 	def validate(self):
 		self.calculate_total_mob_days()
 		self.calculate_estimated_coring_work_days()
+		self.calculate_demolition_scope()
+		self.calculate_kingpost_scope()
+		self.calculate_piling_scope()
 		self.calculate_total_days()
 		self.sync_row_days_with_total_days()
 		self.calculate_machinery_amounts()
@@ -88,8 +91,41 @@ class BillofQuantities(Document):
 			coring_work_days = math.ceil(holes / holes_per_day) if holes_per_day else 0
 		self.estimated_coring_work_days = coring_work_days
 
+	def calculate_demolition_scope(self):
+		self.slab_volume = flt(self.slab_length) * flt(self.slab_width) * flt(self.slab_thickness)
+		self.wall_volume = flt(self.wall_length) * flt(self.wall_width) * flt(self.wall_thickness)
+		self.beam_volume = flt(self.beam_length) * flt(self.beam_width) * flt(self.beam_thickness)
+		self.total_demolition_volume = flt(self.slab_volume) + flt(self.wall_volume) + flt(self.beam_volume)
+
+		rate = flt(self.demolition_productivity_rate)
+		if not rate:
+			self.estimated_demolition_days = 0
+			return
+
+		effective_volume = self.total_demolition_volume * self.get_hardness_factor()
+		if self.demolition_productivity_basis == "Hour per m3":
+			self.estimated_demolition_days = math.ceil((effective_volume * rate) / 8)
+		else:
+			self.estimated_demolition_days = math.ceil(effective_volume / rate)
+
+	def calculate_kingpost_scope(self):
+		rate = flt(self.kingpost_productivity_rate)
+		self.estimated_kingpost_days = math.ceil(flt(self.total_kingpost_weight) / rate) if rate else 0
+
+	def calculate_piling_scope(self):
+		self.total_piling_length = flt(self.piling_perimeter) * flt(self.piling_depth)
+		rate = flt(self.piling_productivity_rate)
+		self.estimated_piling_days = math.ceil(self.total_piling_length / rate) if rate else 0
+
+	def get_estimated_work_days(self):
+		return {
+			"Demolition": flt(self.estimated_demolition_days),
+			"King Post Removal": flt(self.estimated_kingpost_days),
+			"Pile Installation": flt(self.estimated_piling_days),
+		}.get(self.work_type, flt(self.estimated_coring_work_days))
+
 	def calculate_total_days(self):
-		self.total_days = flt(self.estimated_coring_work_days) + flt(self.mob_days) + flt(self.demob_days)
+		self.total_days = self.get_estimated_work_days() + flt(self.mob_days) + flt(self.demob_days)
 
 	def sync_row_days_with_total_days(self):
 		for row in self.machinery_list:
